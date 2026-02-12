@@ -5,122 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a0a">
-    <link rel="manifest" href="manifest.json">
-    <title>Arcaprime - Control de Cartera</title>
+    <title>Arcaprime</title>
     <style>
-        :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; --amarillo: #ffd60a; }
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: var(--fondo); color: var(--texto); margin: 0; padding: 20px 15px 160px 15px; }
-        .resumen { background: var(--tarjeta); padding: 20px; border-radius: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; border: 1px solid #2c2c2e; }
-        .resumen div span { display: block; font-size: 11px; color: var(--gris); text-transform: uppercase; }
-        .resumen div b { font-size: 20px; color: var(--azul); }
-        .hoy-recaudo { grid-column: 1 / span 2; border-top: 1px solid #333; padding-top: 10px; margin-top: 5px; }
-        .ruta-card { background: var(--tarjeta); padding: 18px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2c2c2e; cursor: pointer; }
-        .ruta-card.active { border-color: var(--azul); background: #242426; }
-        .cliente-card { background: var(--tarjeta); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; position: relative; }
-        .btn-eliminar { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--rojo); font-weight: bold; font-size: 20px; }
-        .badger-container { display: flex; gap: 8px; margin-bottom: 15px; }
-        .badger { flex: 1; background: #262629; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
-        .btn-mini { background: #444; border: none; color: white; width: 30px; height: 30px; border-radius: 8px; margin-top: 8px; }
-        .carton { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 15px;}
-        .cuota { height: 40px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #555; }
-        .cuota.paga { background: var(--verde); color: #000; }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; padding:20px; overflow-y:auto; }
-        .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; margin: auto; }
-        .recibo-box { background: white; color: black; padding: 25px; border-radius: 5px; font-family: monospace; }
-        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
-        .btn-tab { flex:1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 11px; color: white; }
-        input { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 10px; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
+        .btn-install { background: #0a84ff; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 18px; display: inline-block; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div id="app-content">
-        <h1 id="t-calle" style="font-size: 35px; margin: 0 0 20px 0;">$ 0</h1>
-        <div class="resumen">
-            <div><span>Cobro Hoy</span><b id="t-diario">$ 0</b></div>
-            <div><span>Clientes</span><b id="t-clientes-count">0</b></div>
-            <div class="hoy-recaudo"><span>💰 RECAUDO HOY:</span><b id="t-recaudo-hoy" style="color:var(--verde); font-size: 24px;">$ 0</b></div>
-        </div>
-        <div id="v-rutas"><div id="lista-r"></div></div>
-        <div id="v-clientes" style="display:none">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <b id="ruta-sel-txt" style="color:var(--azul); font-size: 18px;"></b>
-                <button onclick="document.getElementById('mAdd').style.display='block'" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold;">+ NUEVO</button>
-            </div>
-            <div id="lista-c"></div>
-        </div>
-    </div>
-
-    <div id="mAdd" class="modal"><div class="modal-content">
-        <h2>Nuevo Cliente</h2>
-        <input type="text" id="cN" placeholder="Nombre">
-        <input type="text" id="cD" placeholder="Dirección">
-        <input type="text" id="cF" placeholder="Fiador / Tel">
-        <input type="text" id="cM" placeholder="Capital (Ej: 200.000)" oninput="fMon(this)">
-        <input type="number" id="cT" value="26" placeholder="Días">
-        <input type="number" id="cI" value="20" placeholder="Interés %">
-        <button onclick="crear()" style="width:100%; background:var(--verde); padding:15px; border-radius:12px; border:none; font-weight:bold;">GUARDAR</button>
-        <button onclick="document.getElementById('mAdd').style.display='none'" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CERRAR</button>
-    </div></div>
-
-    <div id="mRecibo" class="modal"><div class="recibo-box"><div id="recibo-html"></div><div id="area-pago" style="margin-top:20px"></div><button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; margin-top:10px; border:none; padding:10px;">CANCELAR</button></div></div>
-
-    <div class="tab-bar">
-        <button class="btn-tab" onclick="nuevaRuta()" style="background:#333;">+ RUTA</button>
-        <button class="btn-tab" onclick="exportar()" style="background:var(--azul);">📤 COPIA</button>
-        <button class="btn-tab" onclick="document.getElementById('fileIn').click()" style="background:var(--amarillo); color:black;">📥 CARGAR</button>
-        <input type="file" id="fileIn" style="display:none" onchange="importar(event)">
-    </div>
+    <h1>Arcaprime</h1>
+    <p>Haz clic abajo para instalar la app:</p>
+    <a href="#" id="installBtn" class="btn-install" style="display:none;">INSTALAR APP</a>
+    <p style="color: gray; font-size: 12px; margin-top: 20px;">Si no aparece el botón, cierra Chrome y vuelve a abrirlo.</p>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('arcaprime_db')) || { r: [] };
-        let rI = null;
-        const f = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Math.round(v));
-        function fMon(i) { let n = i.value.replace(/\D/g,""); i.value = n.replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
-        function s() { localStorage.setItem('arcaprime_db', JSON.stringify(db)); }
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'inline-block';
+        });
 
-        function nuevaRuta() { let n = prompt("Nombre Ruta:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
-        function sR(i) { rI = i; document.getElementById('v-clientes').style.display='block'; re(); }
-        function eliminarCliente(cId) { if(confirm("¿Eliminar?")){ db.r[rI].c = db.r[rI].c.filter(x => x.id !== cId); s(); re(); } }
-        function modFalta(cId, tipo) { const c = db.r[rI].c.find(x => x.id === cId); let m = prompt("¿Multa?", "2000"); if(m){ c.t += parseFloat(m); if(tipo==='a') c.atrasos++; else c.doms++; s(); re(); } }
-        function verRecibo(cId, n) {
-            const c = db.r[rI].c.find(x => x.id === cId); const vC = c.t/c.nC; const sA = c.t - (c.p.length * vC);
-            document.getElementById('recibo-html').innerHTML = `<center><b>${db.r[rI].n.toUpperCase()}</b><br>---</center>CLIENTE: ${c.n}<br>CUOTA: ${n}<br>VALOR: ${f(vC)}<br>SALDO: ${f(sA-vC)}`;
-            document.getElementById('area-pago').innerHTML = `<button onclick="confirmarPago(${cId}, ${n})" style="width:100%; background:var(--verde); border:none; padding:15px; font-weight:bold; border-radius:10px;">PAGAR ✅</button>`;
-            document.getElementById('mRecibo').style.display = 'block';
-        }
-        function confirmarPago(cId, n) { const c = db.r[rI].c.find(x => x.id === cId); c.p.push({ num: n, fecha: new Date().toLocaleString(), valor: (c.t / c.nC) }); s(); document.getElementById('mRecibo').style.display = 'none'; re(); }
-        function crear() {
-            let m = parseFloat(document.getElementById('cM').value.replace(/\./g,"")) || 0;
-            let tot = m + (m * (parseFloat(document.getElementById('cI').value)/100));
-            db.r[rI].c.push({ id: Date.now(), n: document.getElementById('cN').value, d: document.getElementById('cD').value, f: document.getElementById('cF').value, m, t: tot, nC: parseInt(document.getElementById('cT').value), p: [], atrasos: 0, doms: 0 });
-            s(); document.getElementById('mAdd').style.display='none'; re();
-        }
-        function re() {
-            let tc = 0, td = 0, tr = 0, cc = 0; const hoy = new Date().toLocaleDateString();
-            const lr = document.getElementById('lista-r'); lr.innerHTML = '';
-            db.r.forEach((r, i) => {
-                let sal = r.c.reduce((acc, x) => acc + (x.t - (x.p.length * (x.t/x.nC))), 0); tc += sal;
-                lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})"><b>${r.n.toUpperCase()}</b><span>${f(sal)}</span></div>`;
+        document.getElementById('installBtn').addEventListener('click', (e) => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Usuario aceptó');
+                }
+                deferredPrompt = null;
             });
-            const lc = document.getElementById('lista-c'); lc.innerHTML = '';
-            if(rI !== null) {
-                document.getElementById('ruta-sel-txt').innerText = db.r[rI].n; cc = db.r[rI].c.length;
-                db.r[rI].c.forEach(c => {
-                    let vC = c.t/c.nC; let sA = c.t - (c.p.length * vC); if(c.p.length < c.nC) td += vC;
-                    c.p.forEach(p => { if(p.fecha.includes(hoy)) tr += p.valor; });
-                    let cart = ''; for(let x=1; x<=c.nC; x++) { const paga = c.p.find(p => p.num === x); cart += `<div class="cuota ${paga?'paga':''}" onclick="${!paga ? `verRecibo(${c.id}, ${x})` : ''}">${x}</div>`; }
-                    lc.innerHTML += `<div class="cliente-card"><button class="btn-eliminar" onclick="eliminarCliente(${c.id})">✕</button><b>${c.n}</b><br><small>${c.d}</small><div class="badger-container"><div class="badger"><small>Atrasos</small><br><b>${c.atrasos}</b><button class="btn-mini" onclick="modFalta(${c.id},'a')">+</button></div><div class="badger"><small>Doms</small><br><b>${c.doms}</b><button class="btn-mini" onclick="modFalta(${c.id},'d')">+</button></div></div><div class="carton">${cart}</div><div style="text-align:right"><b style="color:var(--verde); font-size: 20px;">${f(sA)}</b></div></div>`;
-                });
-            }
-            document.getElementById('t-calle').innerText = f(tc); document.getElementById('t-diario').innerText = f(td); document.getElementById('t-recaudo-hoy').innerText = f(tr); document.getElementById('t-clientes-count').innerText = cc;
-        }
-        function exportar() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); a.download = "ARCAPRIME_COPIA.json"; a.click(); }
-        function importar(e) { const r = new FileReader(); r.onload = (ev) => { db = JSON.parse(ev.target.result); s(); location.reload(); }; r.readAsText(e.target.files[0]); }
-        window.onload = re;
+        });
     </script>
 </body>
 </html>
