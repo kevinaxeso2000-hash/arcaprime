@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Arcaprime - Control Total</title>
+    <title>Arcaprime - Control Total Rutas</title>
     <style>
         :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; --amarillo: #ffd60a; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -25,17 +25,19 @@
         .controles-zona { background: #262629; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
         .btn-atraso { background: #3a3a3c; color: white; border: none; width: 35px; height: 35px; border-radius: 10px; font-size: 20px; }
 
-        /* ESTILO DEL RECIBO DETALLADO */
-        .recibo-header { text-align: center; border-bottom: 1px dashed #444; padding-bottom: 15px; margin-bottom: 15px; }
-        .recibo-fila { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
-        .recibo-fila span { color: var(--gris); }
-        .recibo-total { background: #2c2c2e; padding: 15px; border-radius: 12px; text-align: center; margin: 15px 0; border: 1px solid var(--verde); }
+        /* MODAL Y RECIBO BLANCO */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; padding:20px; overflow-y: auto; }
+        .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; border: 1px solid #333; }
+        
+        /* Contenedor específico del recibo estilo papel */
+        .recibo-papel { background: white; color: black; padding: 20px; border-radius: 15px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .recibo-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px; }
+        .recibo-fila { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .recibo-total-box { background: #f0f0f0; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0; border: 1px solid #ccc; }
+        .advertencia-roja { color: var(--rojo); font-size: 10px; text-align: center; margin-top: 10px; font-weight: bold; }
 
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
         .btn-tab { flex:1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 10px; color: white; background: #333; }
-        
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; padding:20px; overflow-y: auto; }
-        .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; border: 1px solid #333; }
         input { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 10px; font-size: 16px; }
         .agenda-item { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
     </style>
@@ -43,44 +45,44 @@
 <body>
 
     <div class="resumen-global">
-        <span style="font-size:12px; color:var(--gris)">TOTAL GLOBAL EN CALLE</span><br>
+        <span style="font-size:12px; color:var(--gris)">CALLE GLOBAL ACTUAL</span><br>
         <b id="t-global">$ 0</b>
     </div>
 
     <div id="v-rutas"><div id="lista-r"></div></div>
     
     <div id="v-clientes" style="display:none">
-        <button onclick="document.getElementById('v-clientes').style.display='none'" style="background:none; color:var(--azul); border:none; margin-bottom:15px; font-weight:bold;">← VOLVER A RUTAS</button>
+        <button onclick="document.getElementById('v-clientes').style.display='none'" style="background:none; color:var(--azul); border:none; margin-bottom:15px; font-weight:bold;">← VOLVER</button>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
             <b id="ruta-sel-txt" style="color:var(--azul); font-size: 20px;"></b>
-            <button onclick="abrirModalNuevo()" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:black;">+ NUEVO CRÉDITO</button>
+            <button onclick="abrirModalNuevo()" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:black;">+ NUEVO</button>
         </div>
         <div id="lista-c"></div>
     </div>
 
-    <div id="mRecibo" class="modal"><div class="modal-content" id="recibo-body"></div></div>
+    <div id="mRecibo" class="modal"><div class="modal-content" id="recibo-body" style="background:transparent; border:none; padding:0;"></div></div>
 
     <div id="mAdd" class="modal"><div class="modal-content">
-        <h2 id="modal-titulo" style="margin-top:0">Nuevo Crédito</h2>
+        <h2 id="modal-titulo">Datos del Crédito</h2>
         <button onclick="verAgenda()" id="btn-agenda-show" style="width:100%; background:var(--azul); color:white; border:none; padding:10px; border-radius:10px; margin-bottom:15px; font-weight:bold;">📖 CARGAR DE AGENDA</button>
         <input type="hidden" id="edit-id">
-        <input type="text" id="cN" placeholder="Nombre Completo">
+        <input type="text" id="cN" placeholder="Nombre">
         <input type="text" id="cC" placeholder="Cédula">
-        <input type="text" id="cT" placeholder="Teléfono WhatsApp">
-        <input type="text" id="cD" placeholder="Dirección de Cobro">
-        <input type="text" id="cF" placeholder="Nombre Fiador">
+        <input type="text" id="cT" placeholder="Teléfono">
+        <input type="text" id="cD" placeholder="Dirección">
+        <input type="text" id="cF" placeholder="Fiador">
         <div style="display:flex; gap:10px">
             <input type="number" id="cCap" placeholder="Capital">
-            <input type="number" id="cInt" value="20" placeholder="Interés %">
+            <input type="number" id="cInt" value="20" placeholder="%">
         </div>
-        <input type="number" id="cCuo" value="26" placeholder="Cuotas Totales">
+        <input type="number" id="cCuo" value="26" placeholder="Cuotas">
         <input type="date" id="cFechaIni">
-        <button onclick="guardarCredito()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black;">GUARDAR INFORMACIÓN</button>
+        <button onclick="guardarCredito()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black;">GUARDAR</button>
         <button onclick="cerrarModalAdd()" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CANCELAR</button>
     </div></div>
 
     <div id="mAgenda" class="modal"><div class="modal-content">
-        <h2 style="margin-top:0">Agenda de Clientes</h2>
+        <h2>Agenda de Clientes</h2>
         <div id="lista-agenda" style="max-height:400px; overflow-y:auto"></div>
         <button onclick="document.getElementById('mAgenda').style.display='none'" style="width:100%; background:#444; color:white; border:none; padding:15px; border-radius:10px; margin-top:15px;">CERRAR</button>
     </div></div>
@@ -100,13 +102,11 @@
         const f = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
         function s() { localStorage.setItem('arcaprime_db', JSON.stringify(db)); }
 
-        function nuevaRuta() { let n = prompt("Nombre de Ruta:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
+        function nuevaRuta() { let n = prompt("Nombre de la Ruta / Negocio:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
         function sR(i) { rI = i; document.getElementById('v-clientes').style.display='block'; re(); }
 
         function abrirModalNuevo() {
             cerrarModalAdd();
-            document.getElementById('modal-titulo').innerText = "Nuevo Crédito";
-            document.getElementById('btn-agenda-show').style.display = 'block';
             document.getElementById('mAdd').style.display = 'block';
             document.getElementById('cFechaIni').value = new Date().toISOString().split('T')[0];
         }
@@ -126,7 +126,6 @@
                 nC: parseInt(document.getElementById('cCuo').value),
                 p: id ? db.r[rI].c.find(x => x.id == id).p : [],
                 atrasos: id ? db.r[rI].c.find(x => x.id == id).atrasos : 0,
-                fReg: id ? db.r[rI].c.find(x => x.id == id).fReg : new Date().toLocaleDateString(),
                 fIni: document.getElementById('cFechaIni').value
             };
             if(!db.agenda) db.agenda = [];
@@ -151,7 +150,7 @@
 
         function abrirEditar(cId) {
             let c = db.r[rI].c.find(x => x.id === cId);
-            document.getElementById('modal-titulo').innerText = "Editar Crédito";
+            document.getElementById('modal-titulo').innerText = "Editar";
             document.getElementById('edit-id').value = c.id;
             document.getElementById('cN').value = c.n;
             document.getElementById('cC').value = c.cedula;
@@ -159,10 +158,8 @@
             document.getElementById('cD').value = c.d;
             document.getElementById('cF').value = c.f || '';
             document.getElementById('cCap').value = c.m;
-            document.getElementById('cInt').value = ((c.t - c.m) / c.m * 100).toFixed(0);
             document.getElementById('cCuo').value = c.nC;
             document.getElementById('cFechaIni').value = c.fIni;
-            document.getElementById('btn-agenda-show').style.display = 'none';
             document.getElementById('mRecibo').style.display = 'none';
             document.getElementById('mAdd').style.display = 'block';
         }
@@ -170,99 +167,94 @@
         function verAgenda() {
             let html = '';
             (db.agenda || []).forEach(a => {
-                html += `<div class="agenda-item" onclick="cargarDeAgenda('${a.cedula}')">
-                    <span><b>${a.n}</b><br><small>${a.cedula}</small></span>
-                    <button style="background:var(--azul); color:white; border:none; padding:8px; border-radius:5px">USAR</button>
-                </div>`;
+                html += `<div class="agenda-item" onclick="cargarDeAgenda('${a.cedula}')"><span><b>${a.n}</b></span><button style="background:var(--azul); border:none; padding:8px; border-radius:5px; color:white;">USAR</button></div>`;
             });
-            document.getElementById('lista-agenda').innerHTML = html || 'Sin clientes guardados';
+            document.getElementById('lista-agenda').innerHTML = html || 'Vacio';
             document.getElementById('mAgenda').style.display = 'block';
         }
 
         function cargarDeAgenda(cc) {
             let a = db.agenda.find(x => x.cedula === cc);
-            document.getElementById('cN').value = a.n;
-            document.getElementById('cC').value = a.cedula;
-            document.getElementById('cT').value = a.tel;
-            document.getElementById('cD').value = a.d;
-            document.getElementById('cF').value = a.f || '';
-            document.getElementById('mAgenda').style.display = 'none';
+            document.getElementById('cN').value = a.n; document.getElementById('cC').value = a.cedula;
+            document.getElementById('cT').value = a.tel; document.getElementById('cD').value = a.d;
+            document.getElementById('cF').value = a.f || ''; document.getElementById('mAgenda').style.display = 'none';
         }
 
         function cerrarModalAdd() {
-            document.getElementById('mAdd').style.display = 'none';
-            document.getElementById('edit-id').value = '';
+            document.getElementById('mAdd').style.display = 'none'; document.getElementById('edit-id').value = '';
             ['cN','cC','cT','cD','cF','cCap'].forEach(i => document.getElementById(i).value = '');
         }
 
         function modAtraso(cId, val) {
             const c = db.r[rI].c.find(x => x.id === cId);
-            c.atrasos = Math.max(0, (c.atrasos || 0) + val);
-            s(); re();
+            c.atrasos = Math.max(0, (c.atrasos || 0) + val); s(); re();
         }
 
         function addDominical(cId) {
             const c = db.r[rI].c.find(x => x.id === cId);
-            c.p.push({num: 'D', f: new Date().toLocaleDateString(), tipo: 'DOM'});
-            s(); re();
+            c.p.push({num: 'D', f: new Date().toLocaleDateString(), tipo: 'DOM'}); s(); re();
         }
 
         function clickCuota(cId, num) {
             const c = db.r[rI].c.find(x => x.id === cId);
             const idx = c.p.findIndex(p => p.num === num);
-            if (idx > -1) {
-                if(confirm("¿Borrar pago?")){ c.p.splice(idx,1); s(); re(); }
-            } else { c.p.push({num, f: new Date().toLocaleDateString()}); s(); re(); }
+            if (idx > -1) { if(confirm("¿Quitar pago?")){ c.p.splice(idx,1); s(); re(); } } 
+            else { c.p.push({num, f: new Date().toLocaleDateString()}); s(); re(); }
         }
 
         function verRecibo(cId) {
+            const rNombre = db.r[rI].n.toUpperCase();
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
-            const pagas = c.p.filter(x => x.tipo !== 'DOM').length;
-            const atrasoDinero = c.atrasos * vC;
-            const saldoTotal = (c.t - (pagas * vC)) + atrasoDinero;
+            const pagas = c.p.filter(x => x.tipo !== 'DOM');
+            const uPago = pagas.length > 0 ? pagas[pagas.length-1].f : "Ninguno";
+            const saldoTotal = (c.t - (pagas.length * vC)) + (c.atrasos * vC);
 
             document.getElementById('recibo-body').innerHTML = `
-                <div class="recibo-header">
-                    <h2 style="color:var(--azul); margin:0">ARCAPRIME PRO</h2>
-                    <small>ESTADO DE CUENTA DETALLADO</small><br>
-                    <small>Generado: ${new Date().toLocaleString()}</small>
-                </div>
-                <div class="recibo-fila"><span>Cliente:</span><b>${c.n}</b></div>
-                <div class="recibo-fila"><span>Cédula:</span><b>${c.cedula}</b></div>
-                <div class="recibo-fila"><span>WhatsApp:</span><b>${c.tel}</b></div>
-                <div class="recibo-fila"><span>Dirección:</span><b>${c.d}</b></div>
-                <div class="recibo-fila"><span>Fiador:</span><b>${c.f || 'Sin Fiador'}</b></div>
-                <hr style="border:0; border-top:1px dashed #444; margin:10px 0">
-                <div class="recibo-fila"><span>Capital + Interés:</span><b>${f(c.t)}</b></div>
-                <div class="recibo-fila"><span>Valor de Cuota:</span><b>${f(vC)}</b></div>
-                <div class="recibo-fila"><span>Cuotas Pagadas:</span><b>${pagas} de ${c.nC}</b></div>
-                <div class="recibo-fila"><span>Cuotas Restantes:</span><b>${c.nC - pagas}</b></div>
-                <div class="recibo-fila" style="color:var(--rojo)"><span>Mora (${c.atrasos} días):</span><b>${f(atrasoDinero)}</b></div>
-                
-                <div class="recibo-total">
-                    <span style="font-size:12px; color:var(--gris)">SALDO TOTAL PENDIENTE</span><br>
-                    <b style="font-size:26px; color:var(--verde)">${f(saldoTotal)}</b>
+                <div class="recibo-papel">
+                    <div class="recibo-header">
+                        <h2 style="margin:0; font-size:22px">${rNombre}</h2>
+                        <small>FECHA: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                    </div>
+                    <div class="recibo-fila"><span>CLIENTE:</span><b>${c.n}</b></div>
+                    <div class="recibo-fila"><span>CÉDULA:</span><b>${c.cedula}</b></div>
+                    <div class="recibo-fila"><span>FIADOR:</span><b>${c.f || 'N/A'}</b></div>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0">
+                    <div class="recibo-fila"><span>FECHA INICIO:</span><b>${c.fIni}</b></div>
+                    <div class="recibo-fila"><span>ÚLTIMO PAGO:</span><b>${uPago}</b></div>
+                    <div class="recibo-fila"><span>VALOR CUOTA:</span><b>${f(vC)}</b></div>
+                    <div class="recibo-fila"><span>CUOTAS:</span><b>${pagas.length} de ${c.nC}</b></div>
+                    <div class="recibo-fila" style="color:red"><span>ATRASOS:</span><b>${c.atrasos} (${f(c.atrasos*vC)})</b></div>
+                    
+                    <div class="recibo-total-box">
+                        <span style="font-size:12px">SALDO TOTAL PENDIENTE</span><br>
+                        <b style="font-size:26px; color:black">${f(saldoTotal)}</b>
+                    </div>
+                    
+                    <div class="advertencia-roja">NO SE RESPONDEN TRATOS CON EL COBRADOR</div>
                 </div>
 
-                <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">ENVIAR WHATSAPP</button>
-                
-                <div style="display:flex; gap:8px; margin-bottom:10px">
-                    <button onclick="abrirEditar(${cId})" style="flex:1; background:var(--azul); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">EDITAR</button>
-                    <button onclick="renovar(${cId})" style="flex:1; background:var(--verde); color:black; padding:12px; border-radius:10px; border:none; font-weight:bold;">RENOVAR</button>
-                    <button onclick="eliminar(${cId})" style="flex:1; background:var(--rojo); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">BORRAR</button>
+                <div style="margin-top:20px">
+                    <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">WHATSAPP</button>
+                    <div style="display:flex; gap:8px; margin-bottom:10px">
+                        <button onclick="abrirEditar(${cId})" style="flex:1; background:var(--azul); color:white; padding:12px; border-radius:10px; border:none;">EDITAR</button>
+                        <button onclick="renovar(${cId})" style="flex:1; background:var(--verde); color:black; padding:12px; border-radius:10px; border:none;">RENOVAR</button>
+                        <button onclick="eliminar(${cId})" style="flex:1; background:var(--rojo); color:white; padding:12px; border-radius:10px; border:none;">BORRAR</button>
+                    </div>
+                    <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none;">CERRAR</button>
                 </div>
-                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none;">CERRAR</button>
             `;
             document.getElementById('mRecibo').style.display = 'block';
         }
 
         function enviarWha(cId) {
+            const rNombre = db.r[rI].n.toUpperCase();
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
-            const pagas = c.p.filter(x => x.tipo !== 'DOM').length;
-            const saldo = f((c.t - (pagas * vC)) + (c.atrasos * vC));
-            const msg = `*ARCAPRIME PRO*%0A*ESTADO DE CUENTA*%0A--------------------------%0A*Cliente:* ${c.n}%0A*Saldo:* ${saldo}%0A*Cuotas:* ${pagas}/${c.nC}%0A*Atrasos:* ${c.atrasos} d%0A*Fiador:* ${c.f || 'N/A'}`;
+            const pagas = c.p.filter(x => x.tipo !== 'DOM');
+            const uPago = pagas.length > 0 ? pagas[pagas.length-1].f : "Ninguno";
+            const saldo = f((c.t - (pagas.length * vC)) + (c.atrasos * vC));
+            const msg = `*${rNombre}*%0A*ESTADO DE CUENTA*%0A--------------------------%0A*Cliente:* ${c.n}%0A*Inicio:* ${c.fIni}%0A*Ult. Pago:* ${uPago}%0A*Saldo:* ${saldo}%0A*Cuotas:* ${pagas.length}/${c.nC}%0A*Atrasos:* ${c.atrasos} d%0A--------------------------%0A_No se responden tratos con el cobrador_`;
             window.open(`https://wa.me/57${c.tel}?text=${msg}`);
         }
 
@@ -272,31 +264,30 @@
             db.r.forEach((r, i) => {
                 let sr = r.c.reduce((acc, x) => acc + (x.t - (x.p.filter(p=>p.tipo!=='DOM').length * (x.t/x.nC))) + (x.atrasos * (x.t/x.nC)), 0);
                 tg += sr;
-                lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})"><b>${r.n.toUpperCase()}</b><span>Calle: ${f(sr)}</span></div>`;
+                lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})"><b>${r.n.toUpperCase()}</b><span>${f(sr)}</span></div>`;
             });
             document.getElementById('t-global').innerText = f(tg);
             const lc = document.getElementById('lista-c'); lc.innerHTML = '';
             if(rI !== null) {
                 document.getElementById('ruta-sel-txt').innerText = db.r[rI].n;
                 db.r[rI].c.forEach(c => {
-                    let vC = c.t/c.nC;
-                    let pagas = c.p.filter(x=>x.tipo!=='DOM');
+                    let vC = c.t/c.nC; let pagas = c.p.filter(x=>x.tipo!=='DOM');
                     let st = (c.t - (pagas.length * vC)) + (c.atrasos * vC);
                     let cart = '';
                     c.p.filter(x=>x.tipo==='DOM').forEach(()=> cart += `<button class="cuota dom">D</button>`);
                     for(let x=1; x<=c.nC; x++) { cart += `<button class="cuota ${c.p.some(p=>p.num===x)?'paga':''}" onclick="clickCuota(${c.id}, ${x})">${x}</button>`; }
                     lc.innerHTML += `<div class="cliente-card">
-                        <div style="display:flex; justify-content:space-between;"><b>${c.n}</b><small>Inicio: ${c.fIni}</small></div>
+                        <div style="display:flex; justify-content:space-between;"><b>${c.n}</b><small>${c.fIni}</small></div>
                         <div class="carton">${cart}</div>
                         <div class="controles-zona">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                                <span>Días Atraso Manual: <b>${c.atrasos}</b></span>
+                                <span>Atrasos: <b>${c.atrasos}</b></span>
                                 <div><button class="btn-atraso" onclick="modAtraso(${c.id},-1)">-</button><button class="btn-atraso" onclick="modAtraso(${c.id},1)" style="margin-left:5px">+</button></div>
                             </div>
-                            <button onclick="addDominical(${c.id})" style="width:100%; background:var(--amarillo); border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; color:black">REGISTRAR DOMINICAL (EXTRA)</button>
+                            <button onclick="addDominical(${c.id})" style="width:100%; background:var(--amarillo); border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; color:black">MARCAR DOMINGO</button>
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center">
-                            <button onclick="verRecibo(${c.id})" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:10px; font-weight:bold">👁️ RECIBO Y ACCIONES</button>
+                            <button onclick="verRecibo(${c.id})" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:10px; font-weight:bold">👁️ RECIBO / ACCIONES</button>
                             <b style="color:var(--verde); font-size:18px">${f(st)}</b>
                         </div>
                     </div>`;
@@ -304,7 +295,7 @@
             }
         }
 
-        function eliminar(id) { if(confirm("¿Borrar definitivamente?")) { db.r[rI].c = db.r[rI].c.filter(x=>x.id!==id); s(); re(); document.getElementById('mRecibo').style.display='none'; } }
+        function eliminar(id) { if(confirm("¿Borrar crédito?")) { db.r[rI].c = db.r[rI].c.filter(x=>x.id!==id); s(); re(); document.getElementById('mRecibo').style.display='none'; } }
         function exportar() {
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type: 'application/json'}));
             a.download = `ARCAPRIME_BACKUP.json`; a.click();
