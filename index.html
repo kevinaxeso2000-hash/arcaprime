@@ -3,37 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <title>Arcaprime</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .btn-install { background: #0a84ff; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 18px; display: inline-block; margin-top: 20px; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; }
+        .btn-azul { background: #0a84ff; color: white; padding: 20px; border-radius: 15px; font-weight: bold; display: none; text-decoration: none; border: none; width: 100%; font-size: 20px; }
+        .pasos { text-align: left; background: #1c1c1e; padding: 20px; border-radius: 15px; margin-top: 30px; border: 1px solid #333; }
     </style>
 </head>
 <body>
-    <h1>Arcaprime</h1>
-    <p>Haz clic abajo para instalar la app:</p>
-    <a href="#" id="installBtn" class="btn-install" style="display:none;">INSTALAR APP</a>
-    <p style="color: gray; font-size: 12px; margin-top: 20px;">Si no aparece el botón, cierra Chrome y vuelve a abrirlo.</p>
+    <h1>Arcaprime Cali</h1>
+    
+    <button id="btnInstalar" class="btn-azul">INSTALAR AHORA</button>
+
+    <div class="pasos">
+        <p><b>Si no ves el botón azul:</b></p>
+        <p>1. Toca los 3 puntos de Chrome (arriba).</p>
+        <p>2. Busca <b>"Instalar aplicación"</b>.</p>
+        <p>3. Si dice <b>"Agregar a la pantalla..."</b> dale ahí, pero ábrelo desde el icono nuevo.</p>
+    </div>
 
     <script>
-        let deferredPrompt;
+        // Registro del Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        let eventoInstalacion;
+        const boton = document.getElementById('btnInstalar');
+
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBtn').style.display = 'inline-block';
+            eventoInstalacion = e;
+            boton.style.display = 'block'; // AQUÍ APARECE EL BOTÓN
         });
 
-        document.getElementById('installBtn').addEventListener('click', (e) => {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('Usuario aceptó');
-                }
-                deferredPrompt = null;
-            });
+        boton.addEventListener('click', () => {
+            if (eventoInstalacion) {
+                eventoInstalacion.prompt();
+            }
         });
     </script>
 </body>
