@@ -28,20 +28,20 @@
         .cliente-card { background: var(--tarjeta); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; position: relative; }
         .fecha-info { font-size: 10px; color: var(--gris); margin-bottom: 3px; display: block; }
         .info-contacto { font-size: 12px; color: var(--amarillo); margin-bottom: 3px; display: block; }
-        .cedula-info { font-size: 12px; color: #aaa; margin-bottom: 10px; display: block; }
         
         .carton { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 15px; }
-        .cuota { height: 35px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555; }
+        .cuota { height: 35px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555; border: none; }
         .cuota.paga { background: var(--verde); color: #000; font-weight: bold; }
         
+        .acciones-cliente { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; }
+        .btn-accion { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
         .btn-tab { flex:1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 11px; color: white; background: #333; }
         
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; padding:20px; overflow-y: auto; }
-        .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; border: 1px solid #333; }
-        label { display: block; font-size: 11px; color: var(--gris); margin: 12px 0 5px 5px; text-transform: uppercase; font-weight: bold; }
-        input { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 5px; font-size: 16px; }
-        .grid-input { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; border: 1px solid #333; text-align: left; }
+        input { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 10px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -54,8 +54,8 @@
     </div>
 
     <div class="filtros">
-        <button class="btn-filtro active" id="f-todos" onclick="setFiltro('todos')">VER TODOS</button>
-        <button class="btn-filtro" id="f-pendientes" onclick="setFiltro('pendientes')">PENDIENTES HOY</button>
+        <button class="btn-filtro active" onclick="setFiltro('todos')">VER TODOS</button>
+        <button class="btn-filtro" onclick="setFiltro('pendientes')">PENDIENTES HOY</button>
     </div>
 
     <div id="v-rutas"><div id="lista-r"></div></div>
@@ -68,58 +68,28 @@
         <div id="lista-c"></div>
     </div>
 
-    <div id="mAdd" class="modal"><div class="modal-content">
-        <h2 style="margin:0 0 15px 0; text-align:center">Nuevo Crédito</h2>
-        
-        <label>Nombre del Cliente</label>
-        <input type="text" id="cN" placeholder="Nombre completo">
-        
-        <div class="grid-input">
-            <div>
-                <label>Cédula</label>
-                <input type="text" id="cCedula" placeholder="1010...">
-            </div>
-            <div>
-                <label>Teléfono</label>
-                <input type="text" id="cTel" placeholder="300...">
-            </div>
-        </div>
-        
-        <label>Dirección</label>
-        <input type="text" id="cD" placeholder="Calle 1 # 2-3">
-        
-        <label>Fiador / Teléfono</label>
-        <input type="text" id="cF" placeholder="Nombre y celular">
-        
-        <div class="grid-input">
-            <div>
-                <label>Capital ($)</label>
-                <input type="number" id="cM" placeholder="200000">
-            </div>
-            <div>
-                <label>Interés (%)</label>
-                <input type="number" id="cInteresPorc" value="20">
-            </div>
-        </div>
+    <div id="mRecibo" class="modal"><div class="modal-content" id="recibo-body"></div></div>
 
-        <div class="grid-input">
-            <div>
-                <label>N° Cuotas</label>
-                <input type="number" id="cT" value="26">
-            </div>
-            <div>
-                <label>Inicia el día</label>
-                <input type="date" id="cFechaInicio">
-            </div>
+    <div id="mAdd" class="modal"><div class="modal-content">
+        <h2 style="margin-top:0">Nuevo Crédito</h2>
+        <input type="text" id="cN" placeholder="Nombre">
+        <input type="text" id="cCedula" placeholder="Cédula">
+        <input type="text" id="cTel" placeholder="Teléfono">
+        <input type="text" id="cD" placeholder="Dirección">
+        <input type="text" id="cF" placeholder="Fiador">
+        <div style="display:flex; gap:10px">
+            <input type="number" id="cM" placeholder="Capital">
+            <input type="number" id="cI" value="20" placeholder="%">
         </div>
-        
-        <button onclick="crear()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; margin-top:20px; color:black; font-size:16px;">GUARDAR</button>
-        <button onclick="document.getElementById('mAdd').style.display='none'" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CANCELAR</button>
+        <input type="number" id="cT" value="26" placeholder="Cuotas">
+        <input type="date" id="cFechaInicio">
+        <button onclick="crear()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black;">GUARDAR</button>
+        <button onclick="document.getElementById('mAdd').style.display='none'" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CERRAR</button>
     </div></div>
 
     <div class="tab-bar">
         <button class="btn-tab" onclick="nuevaRuta()">+ RUTA</button>
-        <button class="btn-tab" onclick="exportar()" style="background:var(--azul);">📤 COPIA</button>
+        <button class="btn-tab" onclick="exportar()" style="background:var(--azul);">COPIA</button>
         <button class="btn-tab" onclick="location.reload()">🔄 REFRESCAR</button>
     </div>
 
@@ -131,65 +101,64 @@
         const f = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
         function s() { localStorage.setItem('arcaprime_db', JSON.stringify(db)); }
 
-        function setFiltro(tipo) {
-            filtroActual = tipo;
-            document.getElementById('f-todos').classList.toggle('active', tipo === 'todos');
-            document.getElementById('f-pendientes').classList.toggle('active', tipo === 'pendientes');
-            re();
-        }
-
-        function nuevaRuta() { 
-            let n = prompt("Nombre de la ruta:"); 
-            if(n){ db.r.push({ n, c: [] }); s(); re(); } 
-        }
-
-        function sR(i) { 
-            rI = i; 
-            document.getElementById('v-clientes').style.display='block'; 
-            re(); 
-        }
+        function setFiltro(t) { filtroActual = t; re(); }
+        function nuevaRuta() { let n = prompt("Nombre:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
+        function sR(i) { rI = i; document.getElementById('v-clientes').style.display='block'; re(); }
 
         function crear() {
             let m = parseFloat(document.getElementById('cM').value) || 0;
-            let nC = parseInt(document.getElementById('cT').value) || 26;
-            let porc = parseFloat(document.getElementById('cInteresPorc').value) || 0;
-            let fInicio = document.getElementById('cFechaInicio').value;
-            
-            if(!fInicio) { alert("Elige fecha de inicio"); return; }
-
-            let totalAPagar = m + (m * (porc / 100));
-
-            db.r[rI].c.push({ 
-                id: Date.now(), 
-                n: document.getElementById('cN').value,
-                cedula: document.getElementById('cCedula').value,
-                tel: document.getElementById('cTel').value,
-                d: document.getElementById('cD').value, 
-                f: document.getElementById('cF').value, 
-                m: m, 
-                t: totalAPagar, 
-                nC: nC, 
-                p: [], 
-                fCreacion: new Date().toLocaleDateString(),
-                fInicio: fInicio
+            let p = parseFloat(document.getElementById('cI').value) || 0;
+            db.r[rI].c.push({
+                id: Date.now(), n: document.getElementById('cN').value, cedula: document.getElementById('cCedula').value,
+                tel: document.getElementById('cTel').value, d: document.getElementById('cD').value, f: document.getElementById('cF').value,
+                m, t: m + (m*(p/100)), nC: parseInt(document.getElementById('cT').value), p: [], 
+                fCreacion: new Date().toLocaleDateString(), fInicio: document.getElementById('cFechaInicio').value
             });
             s(); document.getElementById('mAdd').style.display='none'; re();
         }
 
-        function pagar(cId, num) {
+        function clickCuota(cId, num) {
             const c = db.r[rI].c.find(x => x.id === cId);
-            const hoy = new Date().toLocaleDateString();
-            if(!c.p.some(p => p.num === num)) {
-                c.p.push({num: num, fecha: hoy});
+            const index = c.p.findIndex(p => p.num === num);
+            if (index > -1) {
+                if(confirm("¿Borrar el pago de la cuota " + num + "?")) {
+                    c.p.splice(index, 1);
+                    s(); re();
+                }
+            } else {
+                c.p.push({num, fecha: new Date().toLocaleDateString()});
                 s(); re();
             }
         }
 
+        function verRecibo(cId) {
+            const c = db.r[rI].c.find(x => x.id === cId);
+            const vC = c.t/c.nC;
+            const pagado = c.p.length * vC;
+            const res = `
+                <h2 style="color:var(--azul)">Detalle de Crédito</h2>
+                <p><b>Cliente:</b> ${c.n}<br><b>CC:</b> ${c.cedula}</p>
+                <hr style="border:0; border-top:1px solid #333">
+                <p>Capital: ${f(c.m)}<br>Total con Interés: ${f(c.t)}</p>
+                <p>Valor Cuota: ${f(vC)}<br>Cuotas Pagas: ${c.p.length} de ${c.nC}</p>
+                <p style="font-size:20px; color:var(--verde)"><b>Saldo: ${f(c.t - pagado)}</b></p>
+                <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold;">ENVIAR POR WHATSAPP</button>
+                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--rojo); padding:15px; border:none;">CERRAR</button>
+            `;
+            document.getElementById('recibo-body').innerHTML = res;
+            document.getElementById('mRecibo').style.display = 'block';
+        }
+
+        function enviarWha(cId) {
+            const c = db.r[rI].c.find(x => x.id === cId);
+            const msg = `*ARCAPRIME PRO*%0ACliente: ${c.n}%0ASaldo Pendiente: ${f(c.t - (c.p.length*(c.t/c.nC)))}%0ACuotas: ${c.p.length}/${c.nC}`;
+            window.open(`https://wa.me/57${c.tel}?text=${msg}`);
+        }
+
         function re() {
             let tc = 0, td = 0, cc = 0;
-            const lr = document.getElementById('lista-r'); lr.innerHTML = '';
             const hoy = new Date().toLocaleDateString();
-
+            const lr = document.getElementById('lista-r'); lr.innerHTML = '';
             db.r.forEach((r, i) => {
                 let sal = r.c.reduce((acc, x) => acc + (x.t - (x.p.length * (x.t/x.nC))), 0);
                 tc += sal;
@@ -198,42 +167,27 @@
 
             const lc = document.getElementById('lista-c'); lc.innerHTML = '';
             if(rI !== null) {
-                document.getElementById('ruta-sel-txt').innerText = db.r[rI].n;
-                
-                let clientesParaMostrar = db.r[rI].c;
-                if(filtroActual === 'pendientes') {
-                    clientesParaMostrar = clientesParaMostrar.filter(c => !c.p.some(p => p.fecha === hoy));
-                }
-
-                cc = clientesParaMostrar.length;
-                clientesParaMostrar.forEach(c => {
+                let cls = db.r[rI].c;
+                if(filtroActual === 'pendientes') cls = cls.filter(c => !c.p.some(p => p.fecha === hoy));
+                cc = cls.length;
+                cls.forEach(c => {
                     let vC = c.t/c.nC;
-                    let sA = c.t - (c.p.length * vC);
-                    let pagadoHoy = c.p.some(p => p.fecha === hoy);
-                    
-                    if(!pagadoHoy) td += vC;
-
+                    let pagHoy = c.p.some(p => p.fecha === hoy);
+                    if(!pagHoy) td += vC;
                     let cart = '';
                     for(let x=1; x<=c.nC; x++) {
-                        const esPago = c.p.find(p => p.num === x);
-                        cart += `<div class="cuota ${esPago?'paga':''}" onclick="pagar(${c.id}, ${x})">${x}</div>`;
+                        cart += `<button class="cuota ${c.p.some(p=>p.num===x)?'paga':''}" onclick="clickCuota(${c.id}, ${x})">${x}</button>`;
                     }
-
                     lc.innerHTML += `
                         <div class="cliente-card">
-                            <span class="fecha-info">Creado: ${c.fCreacion} | Inicia: ${c.fInicio}</span>
-                            <b style="font-size:18px">${c.n}</b><br>
-                            <span class="cedula-info">🆔 CC: ${c.cedula || 'N/A'}</span>
-                            <span class="info-contacto">📞 Tel: ${c.tel || 'N/A'} | 🏠 ${c.d}</span>
-                            <span class="info-contacto" style="color:var(--azul)">👥 Fiador: ${c.f || 'No asignado'}</span>
-                            
+                            <span class="fecha-info">Inicia: ${c.fInicio}</span>
+                            <b>${c.n}</b><br><small style="color:var(--gris)">CC: ${c.cedula}</small>
                             <div class="carton">${cart}</div>
-                            
-                            <div style="display:flex; justify-content:space-between; margin-top:15px; align-items:center; border-top:1px solid #333; padding-top:10px">
-                                <span style="font-size:11px; font-weight:bold; color:${pagadoHoy?'var(--verde)':'var(--rojo)'}">
-                                    ${pagadoHoy?'✓ YA PAGÓ HOY':'⚠️ FALTA COBRO'}
-                                </span>
-                                <b style="color:var(--verde); font-size:20px;">${f(sA)}</b>
+                            <div class="acciones-cliente">
+                                <button class="btn-accion" style="background:#333; color:white;" onclick="verRecibo(${c.id})">👁️ VER RECIBO</button>
+                                <button class="btn-accion" style="background:${pagHoy?'#153d1d':'#3d1515'}; color:${pagHoy?'var(--verde)':'var(--rojo)'}">
+                                    ${pagHoy?'✓ PAGADO':'⚠️ PENDIENTE'}
+                                </button>
                             </div>
                         </div>`;
                 });
@@ -244,16 +198,12 @@
         }
 
         function exportar() {
-            const data = JSON.stringify(db);
-            const a = document.createElement('a');
-            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(data);
+            const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = 'ARCAPRIME_BACKUP.json'; a.click();
         }
 
-        window.onload = () => {
-            document.getElementById('cFechaInicio').value = new Date().toISOString().split('T')[0];
-            re();
-        };
+        window.onload = () => { document.getElementById('cFechaInicio').value = new Date().toISOString().split('T')[0]; re(); };
     </script>
 </body>
 </html>
