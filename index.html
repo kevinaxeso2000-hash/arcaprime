@@ -3,49 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <link rel="manifest" href="manifest.json">
-    
     <meta name="theme-color" content="#0a0a0a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <title>Arcaprime</title>
+    <title>Arcaprime Pro</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .card { background: #1c1c1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
-        .btn-instalar { background: #0a84ff; color: white; padding: 20px; border-radius: 15px; border: none; font-weight: bold; width: 100%; display: none; font-size: 18px; margin-top: 20px; }
+        :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { font-family: -apple-system, sans-serif; background: var(--fondo); color: var(--texto); margin: 0; padding: 20px 15px 160px 15px; }
+        
+        .resumen { background: var(--tarjeta); padding: 20px; border-radius: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; border: 1px solid #2c2c2e; }
+        .resumen div span { display: block; font-size: 11px; color: var(--gris); text-transform: uppercase; }
+        .resumen div b { font-size: 20px; color: var(--azul); }
+        
+        .filtros { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-filtro { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #333; background: #1c1c1e; color: white; font-size: 12px; }
+        .btn-filtro.active { background: var(--azul); border-color: var(--azul); }
+
+        .ruta-card { background: var(--tarjeta); padding: 18px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2c2c2e; }
+        .ruta-card.active { border-color: var(--azul); background: #242426; }
+        
+        .cliente-card { background: var(--tarjeta); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; position: relative; }
+        .fecha-info { font-size: 10px; color: var(--gris); margin-bottom: 10px; display: block; }
+        .carton { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 15px; }
+        .cuota { height: 35px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555; }
+        .cuota.paga { background: var(--verde); color: #000; font-weight: bold; }
+        
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
+        .btn-tab { flex:1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 11px; color: white; background: #333; }
+        
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; padding:20px; overflow-y: auto; }
+        .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; }
+        label { display: block; font-size: 12px; color: var(--gris); margin: 10px 0 5px 5px; text-align: left; }
+        input, select { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 5px; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>ARCAPRIME</h1>
-        <p id="status">Verificando sistema...</p>
-        <button id="btnInstalar" class="btn-instalar">INSTALAR AHORA</button>
+    <h1 id="t-calle" style="font-size: 32px; margin: 0 0 20px 0;">$ 0</h1>
+    
+    <div class="resumen">
+        <div><span>Por Cobrar</span><b id="t-diario">$ 0</b></div>
+        <div><span>Clientes</span><b id="t-clientes-count">0</b></div>
+    </div>
+
+    <div class="filtros">
+        <button class="btn-filtro active" id="f-todos" onclick="setFiltro('todos')">TODOS</button>
+        <button class="btn-filtro" id="f-pendientes" onclick="setFiltro('pendientes')">PENDIENTES HOY</button>
+    </div>
+
+    <div id="v-rutas"><div id="lista-r"></div></div>
+    
+    <div id="v-clientes" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <b id="ruta-sel-txt" style="color:var(--azul); font-size: 18px;"></b>
+            <button onclick="document.getElementById('mAdd').style.display='block'" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:black;">+ NUEVO</button>
+        </div>
+        <div id="lista-c"></div>
+    </div>
+
+    <div id="mAdd" class="modal"><div class="modal-content">
+        <h2 style="margin:0 0 15px 0; text-align:center">Nuevo Crédito</h2>
+        
+        <label>Nombre del Cliente</label>
+        <input type="text" id="cN" placeholder="Ej: Juan Perez">
+        
+        <label>Dirección / Teléfono</label>
+        <input type="text" id="cD" placeholder="Calle 1 # 2-3">
+        
+        <label>Capital a Entregar</label>
+        <input type="number" id="cM" placeholder="200000">
+        
+        <label>Interés (%)</label>
+        <select id="cI">
+            <option value="1.20">20% (Normal)</option>
+            <option value="1.15">15%</option>
+            <option value="1.10">10%</option>
+            <option value="1.25">25%</option>
+        </select>
+
+        <label>Número de Cuotas (Días)</label>
+        <input type="number" id="cT" value="26">
+
+        <label>Fecha de Primera Cuota</label>
+        <input type="date" id="cFechaInicio">
+        
+        <button onclick="crear()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; margin-top:15px; color:black;">CREAR CRÉDITO</button>
+        <button onclick="document.getElementById('mAdd').style.display='none'" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CANCELAR</button>
+    </div></div>
+
+    <div class="tab-bar">
+        <button class="btn-tab" onclick="nuevaRuta()">+ RUTA</button>
+        <button class="btn-tab" onclick="exportar()" style="background:var(--azul);">COPIA</button>
+        <button class="btn-tab" onclick="solicitarNotis()">🔔 NOTIS</button>
     </div>
 
     <script>
-        // Registrar el Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+        let db = JSON.parse(localStorage.getItem('arcaprime_db')) || { r: [] };
+        let rI = null;
+        let filtroActual = 'todos';
+
+        const f = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+        function s() { localStorage.setItem('arcaprime_db', JSON.stringify(db)); }
+
+        function solicitarNotis() {
+            Notification.requestPermission().then(p => { if(p==='granted') alert("Notificaciones activas"); });
         }
 
-        // Detectar si se puede instalar
-        let evento;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            evento = e;
-            document.getElementById('btnInstalar').style.display = 'block';
-            document.getElementById('status').innerText = "¡Listo! Toca el botón azul:";
-        });
+        function setFiltro(tipo) {
+            filtroActual = tipo;
+            document.getElementById('f-todos').classList.toggle('active', tipo === 'todos');
+            document.getElementById('f-pendientes').classList.toggle('active', tipo === 'pendientes');
+            re();
+        }
 
-        document.getElementById('btnInstalar').addEventListener('click', () => {
-            if (evento) {
-                evento.prompt();
+        function nuevaRuta() { 
+            let n = prompt("Nombre de la ruta:"); 
+            if(n){ db.r.push({ n, c: [] }); s(); re(); } 
+        }
+
+        function sR(i) { 
+            rI = i; 
+            document.getElementById('v-clientes').style.display='block'; 
+            re(); 
+        }
+
+        function crear() {
+            let m = parseFloat(document.getElementById('cM').value) || 0;
+            let nC = parseInt(document.getElementById('cT').value) || 26;
+            let factor = parseFloat(document.getElementById('cI').value);
+            let fInicio = document.getElementById('cFechaInicio').value;
+            
+            if(!fInicio) { alert("Elige fecha de inicio"); return; }
+
+            db.r[rI].c.push({ 
+                id: Date.now(), 
+                n: document.getElementById('cN').value, 
+                d: document.getElementById('cD').value, 
+                m: m, 
+                t: m * factor, 
+                nC: nC, 
+                p: [], 
+                fCreacion: new Date().toLocaleDateString(),
+                fInicio: fInicio,
+                pagoHoy: false 
+            });
+            s(); document.getElementById('mAdd').style.display='none'; re();
+        }
+
+        function pagar(cId, num) {
+            const c = db.r[rI].c.find(x => x.id === cId);
+            const hoy = new Date().toLocaleDateString();
+            if(!c.p.some(p => p.num === num)) {
+                c.p.push({num: num, fecha: hoy});
+                c.pagoHoy = true;
+                s(); re();
             }
-        });
+        }
+
+        function re() {
+            let tc = 0, td = 0, cc = 0;
+            const lr = document.getElementById('lista-r'); lr.innerHTML = '';
+            const hoy = new Date().toLocaleDateString();
+
+            db.r.forEach((r, i) => {
+                let sal = r.c.reduce((acc, x) => acc + (x.t - (x.p.length * (x.t/x.nC))), 0);
+                tc += sal;
+                lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})"><b>${r.n.toUpperCase()}</b><span>${f(sal)}</span></div>`;
+            });
+
+            const lc = document.getElementById('lista-c'); lc.innerHTML = '';
+            if(rI !== null) {
+                document.getElementById('ruta-sel-txt').innerText = db.r[rI].n;
+                
+                let clientesParaMostrar = db.r[rI].c;
+                if(filtroActual === 'pendientes') {
+                    clientesParaMostrar = clientesParaMostrar.filter(c => !c.p.some(p => p.fecha === hoy));
+                }
+
+                cc = clientesParaMostrar.length;
+                clientesParaMostrar.forEach(c => {
+                    let vC = c.t/c.nC;
+                    let sA = c.t - (c.p.length * vC);
+                    let pagadoHoy = c.p.some(p => p.fecha === hoy);
+                    
+                    if(!pagadoHoy) td += vC;
+
+                    let cart = '';
+                    for(let x=1; x<=c.nC; x++) {
+                        const esPago = c.p.find(p => p.num === x);
+                        cart += `<div class="cuota ${esPago?'paga':''}" onclick="pagar(${c.id}, ${x})">${x}</div>`;
+                    }
+
+                    lc.innerHTML += `
+                        <div class="cliente-card">
+                            <span class="fecha-info">Creado: ${c.fCreacion} | Inicia: ${c.fInicio}</span>
+                            <b>${c.n}</b><br><small>${c.d}</small>
+                            <div class="carton">${cart}</div>
+                            <div style="display:flex; justify-content:space-between; margin-top:15px; align-items:center">
+                                <span style="font-size:12px; color:${pagadoHoy?'var(--verde)':'var(--rojo)'}">${pagadoHoy?'✓ COBRADO':'PENDIENTE'}</span>
+                                <b style="color:var(--verde); font-size:18px;">${f(sA)}</b>
+                            </div>
+                        </div>`;
+                });
+            }
+            document.getElementById('t-calle').innerText = f(tc);
+            document.getElementById('t-diario').innerText = f(td);
+            document.getElementById('t-clientes-count').innerText = cc;
+        }
+
+        function exportar() {
+            const data = JSON.stringify(db);
+            const a = document.createElement('a');
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(data);
+            a.download = 'arcaprime_backup.json'; a.click();
+        }
+
+        window.onload = () => {
+            // Poner fecha de hoy por defecto en el modal
+            document.getElementById('cFechaInicio').value = new Date().toISOString().split('T')[0];
+            re();
+        };
     </script>
 </body>
 </html>
