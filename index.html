@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Arcaprime - Control Total v2</title>
+    <title>Arcaprime - Control Profesional</title>
     <style>
         :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; --amarillo: #ffd60a; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -27,7 +27,7 @@
         .control-atraso { background: #262629; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-atraso { background: #3a3a3c; color: white; border: none; width: 35px; height: 35px; border-radius: 10px; font-size: 20px; }
 
-        .acciones-cliente { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; }
+        .acciones-cliente { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; align-items: center; }
         .btn-accion { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 12px; font-weight: bold; }
 
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
@@ -48,7 +48,7 @@
     <div id="v-rutas"><div id="lista-r"></div></div>
     
     <div id="v-clientes" style="display:none">
-        <button onclick="document.getElementById('v-clientes').style.display='none'" style="background:none; color:var(--azul); border:none; margin-bottom:15px; font-weight:bold;">← VOLVER A RUTAS</button>
+        <button onclick="document.getElementById('v-clientes').style.display='none'" style="background:none; color:var(--azul); border:none; margin-bottom:15px; font-weight:bold;">← VOLVER</button>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
             <b id="ruta-sel-txt" style="color:var(--azul); font-size: 20px;"></b>
             <button onclick="document.getElementById('mAdd').style.display='block'" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:black;">+ NUEVO</button>
@@ -115,7 +115,7 @@
             const c = db.r[rI].c.find(x => x.id === cId);
             const idx = c.p.findIndex(p => p.num === num);
             if (idx > -1) {
-                if(confirm("¿Quitar pago?")){ c.p.splice(idx,1); s(); re(); }
+                if(confirm("¿Quitar pago de cuota "+num+"?")){ c.p.splice(idx,1); s(); re(); }
             } else {
                 c.p.push({num, f: new Date().toLocaleDateString()}); s(); re();
             }
@@ -125,29 +125,30 @@
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
             const saldoBase = c.t - (c.p.length * vC);
-            const saldoAtrasos = c.atrasos * vC;
-            const saldoTotal = saldoBase + saldoAtrasos;
+            const saldoTotal = saldoBase + (c.atrasos * vC);
 
             const res = `
                 <div style="text-align:center; margin-bottom:15px">
-                    <h2 style="color:var(--azul); margin:0">RECIBO DE COBRO</h2>
-                    <small>${c.fReg}</small>
+                    <h2 style="color:var(--azul); margin:0">DETALLE DE CUENTA</h2>
+                    <small>Estado al: ${new Date().toLocaleDateString()}</small>
                 </div>
                 <p><b>Cliente:</b> ${c.n}<br><b>CC:</b> ${c.cedula}</p>
                 <hr style="border:0; border-top:1px solid #333">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px">
-                    <div><small>Capital:</small><br><b>${f(c.m)}</b></div>
-                    <div><small>Cuotas Pagas:</small><br><b>${c.p.length}/${c.nC}</b></div>
+                    <div><small>Capital Prestado:</small><br><b>${f(c.m)}</b></div>
                     <div><small>V. Cuota:</small><br><b>${f(vC)}</b></div>
+                    <div><small>Pagos Realizados:</small><br><b>${c.p.length}/${c.nC}</b></div>
                     <div><small>Días Atraso:</small><br><b style="color:var(--rojo)">${c.atrasos}</b></div>
                 </div>
                 <div style="background:#2c2c2e; padding:15px; border-radius:15px; text-align:center; margin-bottom:15px">
-                    <span>SALDO TOTAL</span><br>
+                    <span>SALDO PENDIENTE</span><br>
                     <b style="font-size:24px; color:var(--verde)">${f(saldoTotal)}</b>
                 </div>
-                <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">WHATSAPP</button>
-                <button onclick="eliminar(${cId})" style="width:100%; background:var(--rojo); color:white; padding:12px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">ELIMINAR CRÉDITO</button>
-                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none;">CERRAR</button>
+                <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">ENVIAR POR WHATSAPP</button>
+                <div style="display:flex; gap:10px">
+                    <button onclick="eliminar(${cId})" style="flex:1; background:var(--rojo); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">BORRAR</button>
+                    <button onclick="document.getElementById('mRecibo').style.display='none'" style="flex:1; background:#444; color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">CERRAR</button>
+                </div>
             `;
             document.getElementById('recibo-body').innerHTML = res;
             document.getElementById('mRecibo').style.display = 'block';
@@ -157,7 +158,7 @@
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
             const saldo = f((c.t - (c.p.length * vC)) + (c.atrasos * vC));
-            const msg = `*ARCAPRIME PRO*%0A*ESTADO DE CUENTA*%0ACliente: ${c.n}%0ASaldo Pendiente: ${saldo}%0AAtrasos: ${c.atrasos} días%0ACuotas: ${c.p.length}/${c.nC}`;
+            const msg = `*ARCAPRIME PRO*%0A*ESTADO DE CUENTA*%0ACliente: ${c.n}%0ASaldo: ${saldo}%0AAtrasos: ${c.atrasos} días%0ACuotas: ${c.p.length}/${c.nC}`;
             window.open(`https://wa.me/57${c.tel}?text=${msg}`);
         }
 
@@ -165,10 +166,7 @@
             let totalGlobal = 0;
             const lr = document.getElementById('lista-r'); lr.innerHTML = '';
             db.r.forEach((r, i) => {
-                let saldoRuta = r.c.reduce((acc, x) => {
-                    let vC = x.t / x.nC;
-                    return acc + (x.t - (x.p.length * vC)) + (x.atrasos * vC);
-                }, 0);
+                let saldoRuta = r.c.reduce((acc, x) => acc + (x.t - (x.p.length * (x.t/x.nC))) + (x.atrasos * (x.t/x.nC)), 0);
                 totalGlobal += saldoRuta;
                 lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})">
                     <div class="ruta-info"><h3>${r.n.toUpperCase()}</h3><span>Calle: ${f(saldoRuta)}</span></div>
@@ -186,11 +184,10 @@
                     for(let x=1; x<=c.nC; x++) { cart += `<button class="cuota ${c.p.some(p=>p.num===x)?'paga':''}" onclick="clickCuota(${c.id}, ${x})">${x}</button>`; }
                     lc.innerHTML += `
                         <div class="cliente-card">
-                            <span style="font-size:10px; color:var(--gris)">Desde: ${c.fIni}</span><br>
                             <b style="font-size:18px">${c.n}</b>
                             <div class="carton">${cart}</div>
                             <div class="control-atraso">
-                                <span>Atrasos Manuales: <b>${c.atrasos}</b></span>
+                                <span>Atrasos (+ cuota): <b>${c.atrasos}</b></span>
                                 <div>
                                     <button class="btn-atraso" onclick="modAtraso(${c.id}, -1)">-</button>
                                     <button class="btn-atraso" onclick="modAtraso(${c.id}, 1)" style="margin-left:5px">+</button>
