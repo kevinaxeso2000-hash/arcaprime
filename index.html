@@ -3,49 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
     <meta name="mobile-web-app-capable" content="yes">
-
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Arcaprime</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; }
-        .btn-azul { background: #0a84ff; color: white; padding: 20px; border-radius: 15px; font-weight: bold; display: none; text-decoration: none; border: none; width: 100%; font-size: 20px; }
-        .pasos { text-align: left; background: #1c1c1e; padding: 20px; border-radius: 15px; margin-top: 30px; border: 1px solid #333; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .card { background: #1c1c1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
+        .btn-instalar { background: #0a84ff; color: white; padding: 20px; border-radius: 15px; border: none; font-weight: bold; width: 100%; display: none; font-size: 18px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>Arcaprime Cali</h1>
-    
-    <button id="btnInstalar" class="btn-azul">INSTALAR AHORA</button>
-
-    <div class="pasos">
-        <p><b>Si no ves el botón azul:</b></p>
-        <p>1. Toca los 3 puntos de Chrome (arriba).</p>
-        <p>2. Busca <b>"Instalar aplicación"</b>.</p>
-        <p>3. Si dice <b>"Agregar a la pantalla..."</b> dale ahí, pero ábrelo desde el icono nuevo.</p>
+    <div class="card">
+        <h1>ARCAPRIME</h1>
+        <p id="status">Cargando sistema...</p>
+        <button id="btnInstalar" class="btn-instalar">INSTALAR APP AHORA</button>
     </div>
 
     <script>
-        // Registro del Service Worker
+        // Registro corregido para GitHub Pages
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('/arcaprime/sw.js')
+            .then(() => console.log("SW registrado"))
+            .catch(err => console.log("Error SW:", err));
         }
 
-        let eventoInstalacion;
-        const boton = document.getElementById('btnInstalar');
-
+        let evento;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            eventoInstalacion = e;
-            boton.style.display = 'block'; // AQUÍ APARECE EL BOTÓN
+            evento = e;
+            document.getElementById('btnInstalar').style.display = 'block';
+            document.getElementById('status').innerText = "¡App Lista para instalar!";
         });
 
-        boton.addEventListener('click', () => {
-            if (eventoInstalacion) {
-                eventoInstalacion.prompt();
-            }
+        document.getElementById('btnInstalar').addEventListener('click', () => {
+            if (evento) evento.prompt();
         });
     </script>
 </body>
