@@ -4,49 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0a0a">
+    <link rel="manifest" href="manifest.json">
     
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <title>Arcaprime</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; margin: 0; }
-        .card { background: #1c1c1e; padding: 30px; border-radius: 25px; border: 1px solid #333; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .card { background: #1c1c1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
         .btn-instalar { background: #0a84ff; color: white; padding: 20px; border-radius: 15px; border: none; font-weight: bold; width: 100%; display: none; font-size: 18px; margin-top: 20px; }
-        .instrucciones { text-align: left; color: #8e8e93; font-size: 14px; margin-top: 30px; }
     </style>
 </head>
 <body>
+
     <div class="card">
         <h1>ARCAPRIME</h1>
-        <p id="status">Verificando estado...</p>
-        <button id="btnInstalar" class="btn-instalar">INSTALAR APP AHORA</button>
-    </div>
-
-    <div class="instrucciones">
-        <p><b>Solución rápida:</b></p>
-        <p>1. Cierra todas las pestañas de Chrome.</p>
-        <p>2. Abre el link en modo <b>Incógnito</b>.</p>
-        <p>3. Toca los 3 puntos y luego <b>"Instalar aplicación"</b>.</p>
+        <p id="status">Verificando sistema...</p>
+        <button id="btnInstalar" class="btn-instalar">INSTALAR AHORA</button>
     </div>
 
     <script>
-        // Este script intenta forzar el prompt de instalación
-        let deferredPrompt;
+        // Registrar el Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // Detectar si se puede instalar
+        let evento;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            deferredPrompt = e;
+            evento = e;
             document.getElementById('btnInstalar').style.display = 'block';
-            document.getElementById('status').innerText = "¡App lista para instalar!";
+            document.getElementById('status').innerText = "¡Listo! Toca el botón azul:";
         });
 
-        document.getElementById('btnInstalar').addEventListener('click', (e) => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                });
+        document.getElementById('btnInstalar').addEventListener('click', () => {
+            if (evento) {
+                evento.prompt();
             }
         });
     </script>
