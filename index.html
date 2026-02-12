@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Arcaprime - Control y Agenda</title>
+    <title>Arcaprime - Versión Completa</title>
     <style>
-        :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; }
+        :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; --amarillo: #ffd60a; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background: var(--fondo); color: var(--texto); margin: 0; padding: 20px 15px 160px 15px; }
         
@@ -13,15 +13,17 @@
         .resumen-global b { font-size: 24px; color: var(--verde); }
 
         .ruta-card { background: var(--tarjeta); padding: 20px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #2c2c2e; display: flex; justify-content: space-between; align-items: center; }
-        .ruta-card.active { border-color: var(--azul); background: #242426; }
+        .ruta-card.active { border-color: var(--azul); }
 
         .cliente-card { background: var(--tarjeta); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; position: relative; }
         
         .carton { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin: 15px 0; }
         .cuota { height: 35px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555; border: none; }
         .cuota.paga { background: var(--verde); color: #000; font-weight: bold; }
+        .cuota.dom { background: var(--amarillo); color: #000; font-weight: bold; }
 
-        .control-atraso { background: #262629; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .controles-zona { background: #262629; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        .fila-control { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .btn-atraso { background: #3a3a3c; color: white; border: none; width: 35px; height: 35px; border-radius: 10px; font-size: 20px; }
 
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
@@ -30,7 +32,7 @@
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; padding:20px; overflow-y: auto; }
         .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; border: 1px solid #333; }
         input { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 10px; font-size: 16px; }
-        .agenda-item { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+        .agenda-item { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -46,7 +48,7 @@
         <button onclick="document.getElementById('v-clientes').style.display='none'" style="background:none; color:var(--azul); border:none; margin-bottom:15px; font-weight:bold;">← VOLVER</button>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
             <b id="ruta-sel-txt" style="color:var(--azul); font-size: 20px;"></b>
-            <button onclick="document.getElementById('mAdd').style.display='block'" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:black;">+ NUEVO</button>
+            <button onclick="abrirModalNuevo()" style="background:var(--verde); border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:black;">+ NUEVO</button>
         </div>
         <div id="lista-c"></div>
     </div>
@@ -55,7 +57,7 @@
 
     <div id="mAdd" class="modal"><div class="modal-content">
         <h2 id="modal-titulo" style="margin-top:0">Nuevo Crédito</h2>
-        <button onclick="verAgenda()" style="width:100%; background:var(--azul); color:white; border:none; padding:10px; border-radius:10px; margin-bottom:15px; font-weight:bold;">📖 CARGAR CLIENTE GUARDADO</button>
+        <button onclick="verAgenda()" id="btn-agenda-show" style="width:100%; background:var(--azul); color:white; border:none; padding:10px; border-radius:10px; margin-bottom:15px; font-weight:bold;">📖 CARGAR DE AGENDA</button>
         <input type="hidden" id="edit-id">
         <input type="text" id="cN" placeholder="Nombre">
         <input type="text" id="cC" placeholder="Cédula">
@@ -68,12 +70,12 @@
         </div>
         <input type="number" id="cCuo" value="26" placeholder="Cuotas">
         <input type="date" id="cFechaIni">
-        <button id="btn-guardar" onclick="guardarCredito()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black;">GUARDAR</button>
+        <button onclick="guardarCredito()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black;">CONFIRMAR</button>
         <button onclick="cerrarModalAdd()" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CANCELAR</button>
     </div></div>
 
     <div id="mAgenda" class="modal"><div class="modal-content">
-        <h2 style="margin-top:0">Agenda de Clientes</h2>
+        <h2 style="margin-top:0">Agenda</h2>
         <div id="lista-agenda" style="max-height:400px; overflow-y:auto"></div>
         <button onclick="document.getElementById('mAgenda').style.display='none'" style="width:100%; background:#444; color:white; border:none; padding:15px; border-radius:10px; margin-top:15px;">CERRAR</button>
     </div></div>
@@ -96,10 +98,18 @@
         function nuevaRuta() { let n = prompt("Nombre:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
         function sR(i) { rI = i; document.getElementById('v-clientes').style.display='block'; re(); }
 
+        function abrirModalNuevo() {
+            cerrarModalAdd();
+            document.getElementById('modal-titulo').innerText = "Nuevo Crédito";
+            document.getElementById('btn-agenda-show').style.display = 'block';
+            document.getElementById('mAdd').style.display = 'block';
+        }
+
         function guardarCredito() {
             let id = document.getElementById('edit-id').value;
             let m = parseFloat(document.getElementById('cCap').value) || 0;
             let p = parseFloat(document.getElementById('cInt').value) || 0;
+            
             let cli = {
                 id: id ? parseInt(id) : Date.now(),
                 n: document.getElementById('cN').value,
@@ -109,16 +119,14 @@
                 f: document.getElementById('cF').value,
                 m, t: m + (m*(p/100)),
                 nC: parseInt(document.getElementById('cCuo').value),
-                p: id ? db.r[rI].c.find(x => x.id == id).p : [], 
+                p: id ? db.r[rI].c.find(x => x.id == id).p : [],
                 atrasos: id ? db.r[rI].c.find(x => x.id == id).atrasos : 0,
                 fReg: id ? db.r[rI].c.find(x => x.id == id).fReg : new Date().toLocaleDateString(),
                 fIni: document.getElementById('cFechaIni').value
             };
 
-            // Guardar en agenda si no existe
             if(!db.agenda) db.agenda = [];
-            let existIdx = db.agenda.findIndex(x => x.cedula === cli.cedula);
-            if(existIdx === -1) db.agenda.push({n: cli.n, cedula: cli.cedula, tel: cli.tel, d: cli.d, f: cli.f});
+            if(!db.agenda.some(x => x.cedula === cli.cedula)) db.agenda.push({n: cli.n, cedula: cli.cedula, tel: cli.tel, d: cli.d, f: cli.f});
 
             if(id) {
                 let idx = db.r[rI].c.findIndex(x => x.id == id);
@@ -129,9 +137,21 @@
             s(); cerrarModalAdd(); re();
         }
 
+        function renovar(cId) {
+            let c = db.r[rI].c.find(x => x.id === cId);
+            document.getElementById('cN').value = c.n;
+            document.getElementById('cC').value = c.cedula;
+            document.getElementById('cT').value = c.tel;
+            document.getElementById('cD').value = c.d;
+            document.getElementById('cF').value = c.f || '';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('mRecibo').style.display = 'none';
+            document.getElementById('mAdd').style.display = 'block';
+        }
+
         function abrirEditar(cId) {
             let c = db.r[rI].c.find(x => x.id === cId);
-            document.getElementById('modal-titulo').innerText = "Editar Crédito";
+            document.getElementById('modal-titulo').innerText = "Editar Datos";
             document.getElementById('edit-id').value = c.id;
             document.getElementById('cN').value = c.n;
             document.getElementById('cC').value = c.cedula;
@@ -141,6 +161,7 @@
             document.getElementById('cCap').value = c.m;
             document.getElementById('cCuo').value = c.nC;
             document.getElementById('cFechaIni').value = c.fIni;
+            document.getElementById('btn-agenda-show').style.display = 'none';
             document.getElementById('mRecibo').style.display = 'none';
             document.getElementById('mAdd').style.display = 'block';
         }
@@ -150,10 +171,10 @@
             (db.agenda || []).forEach(a => {
                 html += `<div class="agenda-item" onclick="cargarDeAgenda('${a.cedula}')">
                     <span><b>${a.n}</b><br><small>${a.cedula}</small></span>
-                    <button style="background:var(--azul); border:none; color:white; padding:5px; border-radius:5px">USAR</button>
+                    <button style="background:var(--azul); border:none; color:white; padding:8px; border-radius:5px">USAR</button>
                 </div>`;
             });
-            document.getElementById('lista-agenda').innerHTML = html || 'No hay clientes guardados';
+            document.getElementById('lista-agenda').innerHTML = html || 'Agenda vacía';
             document.getElementById('mAgenda').style.display = 'block';
         }
 
@@ -170,13 +191,18 @@
         function cerrarModalAdd() {
             document.getElementById('mAdd').style.display = 'none';
             document.getElementById('edit-id').value = '';
-            document.getElementById('modal-titulo').innerText = "Nuevo Crédito";
             ['cN','cC','cT','cD','cF','cCap'].forEach(i => document.getElementById(i).value = '');
         }
 
         function modAtraso(cId, val) {
             const c = db.r[rI].c.find(x => x.id === cId);
             c.atrasos = Math.max(0, (c.atrasos || 0) + val);
+            s(); re();
+        }
+
+        function addDominical(cId) {
+            const c = db.r[rI].c.find(x => x.id === cId);
+            c.p.push({num: 'D', f: new Date().toLocaleDateString(), tipo: 'DOM'});
             s(); re();
         }
 
@@ -193,22 +219,24 @@
         function verRecibo(cId) {
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
-            const saldoTotal = (c.t - (c.p.length * vC)) + (c.atrasos * vC);
+            const pagas = c.p.filter(x => x.tipo !== 'DOM').length;
+            const saldo = (c.t - (pagas * vC)) + (c.atrasos * vC);
             document.getElementById('recibo-body').innerHTML = `
                 <h2 style="color:var(--azul); margin:0; text-align:center">${c.n}</h2>
                 <hr style="border:0; border-top:1px solid #333; margin:15px 0">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px">
-                    <div>Saldo: <b>${f(saldoTotal)}</b></div>
-                    <div>Cuotas: <b>${c.p.length}/${c.nC}</b></div>
+                    <div>Saldo: <b>${f(saldo)}</b></div>
+                    <div>Cuotas: <b>${pagas}/${c.nC}</b></div>
                     <div>Atraso: <b>${c.atrasos} d</b></div>
-                    <div>Valor C.: <b>${f(vC)}</b></div>
+                    <div>Cuota V.: <b>${f(vC)}</b></div>
                 </div>
                 <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin:15px 0">WHATSAPP</button>
-                <div style="display:flex; gap:10px">
+                <div style="display:flex; gap:5px; margin-bottom:10px">
                     <button onclick="abrirEditar(${cId})" style="flex:1; background:var(--azul); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">EDITAR</button>
-                    <button onclick="eliminar(${cId})" style="flex:1; background:var(--rojo); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">ELIMINAR</button>
+                    <button onclick="renovar(${cId})" style="flex:1; background:var(--verde); color:black; padding:12px; border-radius:10px; border:none; font-weight:bold;">RENOVAR</button>
+                    <button onclick="eliminar(${cId})" style="flex:1; background:var(--rojo); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold;">BORRAR</button>
                 </div>
-                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none; margin-top:10px;">CERRAR</button>
+                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none;">CERRAR</button>
             `;
             document.getElementById('mRecibo').style.display = 'block';
         }
@@ -216,19 +244,18 @@
         function enviarWha(cId) {
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
-            const saldo = f((c.t - (c.p.length * vC)) + (c.atrasos * vC));
-            window.open(`https://wa.me/57${c.tel}?text=*ESTADO DE CUENTA*%0ASaldo: ${saldo}%0AAtrasos: ${c.atrasos}`);
+            const pagas = c.p.filter(x => x.tipo !== 'DOM').length;
+            const saldo = f((c.t - (pagas * vC)) + (c.atrasos * vC));
+            window.open(`https://wa.me/57${c.tel}?text=*ESTADO DE CUENTA*%0ASaldo: ${saldo}%0AAtrasos: ${c.atrasos}%0APagos: ${pagas}/${c.nC}`);
         }
 
         function re() {
             let tg = 0;
             const lr = document.getElementById('lista-r'); lr.innerHTML = '';
             db.r.forEach((r, i) => {
-                let sr = r.c.reduce((acc, x) => acc + (x.t - (x.p.length * (x.t/x.nC))) + (x.atrasos * (x.t/x.nC)), 0);
+                let sr = r.c.reduce((acc, x) => acc + (x.t - (x.p.filter(p=>p.tipo!=='DOM').length * (x.t/x.nC))) + (x.atrasos * (x.t/x.nC)), 0);
                 tg += sr;
-                lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})">
-                    <b>${r.n.toUpperCase()}</b><span>${f(sr)}</span>
-                </div>`;
+                lr.innerHTML += `<div class="ruta-card ${rI===i?'active':''}" onclick="sR(${i})"><b>${r.n.toUpperCase()}</b><span>${f(sr)}</span></div>`;
             });
             document.getElementById('t-global').innerText = f(tg);
             const lc = document.getElementById('lista-c'); lc.innerHTML = '';
@@ -236,29 +263,33 @@
                 document.getElementById('ruta-sel-txt').innerText = db.r[rI].n;
                 db.r[rI].c.forEach(c => {
                     let vC = c.t/c.nC;
-                    let st = (c.t - (c.p.length * vC)) + (c.atrasos * vC);
+                    let pagas = c.p.filter(x=>x.tipo!=='DOM');
+                    let st = (c.t - (pagas.length * vC)) + (c.atrasos * vC);
                     let cart = '';
+                    c.p.filter(x=>x.tipo==='DOM').forEach(()=> cart += `<button class="cuota dom">D</button>`);
                     for(let x=1; x<=c.nC; x++) { cart += `<button class="cuota ${c.p.some(p=>p.num===x)?'paga':''}" onclick="clickCuota(${c.id}, ${x})">${x}</button>`; }
                     lc.innerHTML += `<div class="cliente-card">
                         <b>${c.n}</b>
                         <div class="carton">${cart}</div>
-                        <div class="control-atraso">
-                            <span>Atrasos: <b>${c.atrasos}</b></span>
-                            <div><button class="btn-atraso" onclick="modAtraso(${c.id},-1)">-</button><button class="btn-atraso" onclick="modAtraso(${c.id},1)" style="margin-left:5px">+</button></div>
+                        <div class="controles-zona">
+                            <div class="fila-control"><span>Atraso (+ Cuota): <b>${c.atrasos}</b></span>
+                                <div><button class="btn-atraso" onclick="modAtraso(${c.id},-1)">-</button><button class="btn-atraso" onclick="modAtraso(${c.id},1)" style="margin-left:5px">+</button></div>
+                            </div>
+                            <button onclick="addDominical(${c.id})" style="width:100%; background:var(--amarillo); border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px">MARCAR DOMINICAL (SIN COBRO)</button>
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center">
-                            <button onclick="verRecibo(${c.id})" style="background:#333; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold">👁️ RECIBO</button>
-                            <b style="color:var(--verde)">${f(st)}</b>
+                            <button onclick="verRecibo(${c.id})" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:10px; font-weight:bold">👁️ RECIBO / ACCIONES</button>
+                            <b style="color:var(--verde); font-size:18px">${f(st)}</b>
                         </div>
                     </div>`;
                 });
             }
         }
 
-        function eliminar(id) { if(confirm("¿Borrar crédito?")) { db.r[rI].c = db.r[rI].c.filter(x=>x.id!==id); s(); re(); document.getElementById('mRecibo').style.display='none'; } }
+        function eliminar(id) { if(confirm("¿Borrar?")) { db.r[rI].c = db.r[rI].c.filter(x=>x.id!==id); s(); re(); document.getElementById('mRecibo').style.display='none'; } }
         function exportar() {
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type: 'application/json'}));
-            a.download = `ARCAPRIME_AGENDA.json`; a.click();
+            a.download = `ARCAPRIME_FINAL.json`; a.click();
         }
         function importar(e) {
             const reader = new FileReader();
