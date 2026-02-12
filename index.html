@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Arcaprime Pro</title>
+    <title>Arcaprime Control Total</title>
     <style>
         :root { --fondo: #0a0a0a; --tarjeta: #1c1c1e; --azul: #0a84ff; --verde: #30d158; --rojo: #ff453a; --texto: #ffffff; --gris: #8e8e93; --amarillo: #ffd60a; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -26,25 +26,28 @@
         .ruta-card.active { border-color: var(--azul); background: #242426; }
         
         .cliente-card { background: var(--tarjeta); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; position: relative; }
+        .atraso-badge { position: absolute; top: 15px; right: 15px; background: var(--rojo); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; }
+        
         .carton { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 15px; }
         .cuota { height: 35px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555; border: none; }
         .cuota.paga { background: var(--verde); color: #000; font-weight: bold; }
         
         .acciones-cliente { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; }
-        .btn-accion { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-accion { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 12px; font-weight: bold; }
 
-        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
-        .btn-tab { flex:1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 11px; color: white; background: #333; }
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #333; padding-bottom: calc(15px + env(safe-area-inset-bottom)); z-index: 1000;}
+        .btn-tab { flex:1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 10px; color: white; background: #333; }
         
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; padding:20px; overflow-y: auto; }
         .modal-content { background: var(--tarjeta); padding: 25px; border-radius: 25px; border: 1px solid #333; }
-        input { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 10px; font-size: 16px; }
-        .grid-2 { display: flex; gap: 10px; }
+        label { display: block; font-size: 11px; color: var(--gris); margin: 10px 0 5px 5px; text-transform: uppercase; }
+        input, select { width: 100%; background: #2c2c2e; border: 1px solid #444; padding: 14px; border-radius: 10px; color: white; margin-bottom: 5px; font-size: 16px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <h1 id="t-calle" style="font-size: 32px; margin: 0 0 20px 0;">$ 0</h1>
+    <h1 id="t-calle" style="font-size: 30px; margin: 0 0 15px 0;">$ 0</h1>
     
     <div class="resumen">
         <div><span>Saldo Calle</span><b id="t-diario">$ 0</b></div>
@@ -52,8 +55,8 @@
     </div>
 
     <div class="filtros">
-        <button class="btn-filtro active" onclick="setFiltro('todos')">VER TODOS</button>
-        <button class="btn-filtro" onclick="setFiltro('pendientes')">PENDIENTES</button>
+        <button class="btn-filtro active" onclick="setFiltro('todos', this)">TODOS</button>
+        <button class="btn-filtro" onclick="setFiltro('pendientes', this)">PENDIENTES</button>
     </div>
 
     <div id="v-rutas"><div id="lista-r"></div></div>
@@ -69,28 +72,37 @@
     <div id="mRecibo" class="modal"><div class="modal-content" id="recibo-body"></div></div>
 
     <div id="mAdd" class="modal"><div class="modal-content">
-        <h2 style="margin-top:0">Nuevo Crédito</h2>
-        <input type="text" id="cN" placeholder="Nombre">
-        <input type="text" id="cCedula" placeholder="Cédula">
-        <input type="text" id="cTel" placeholder="Teléfono">
-        <input type="text" id="cD" placeholder="Dirección">
-        <input type="text" id="cF" placeholder="Fiador">
+        <h2 style="margin:0 0 15px 0">Nuevo Crédito</h2>
+        <label>Nombre</label><input type="text" id="cN">
         <div class="grid-2">
-            <input type="number" id="cM" placeholder="Capital">
-            <input type="number" id="cI" value="20" placeholder="%">
+            <div><label>Cédula</label><input type="text" id="cC"></div>
+            <div><label>Teléfono</label><input type="text" id="cT"></div>
+        </div>
+        <label>Dirección</label><input type="text" id="cD">
+        <label>Fiador</label><input type="text" id="cF">
+        <div class="grid-2">
+            <div><label>Capital</label><input type="number" id="cCap"></div>
+            <div><label>Interés %</label><input type="number" id="cInt" value="20"></div>
         </div>
         <div class="grid-2">
-            <input type="number" id="cT" value="26" placeholder="Cuotas">
-            <input type="date" id="cFechaInicio">
+            <div><label>Días/Cuotas</label><input type="number" id="cCuo" value="26"></div>
+            <div><label>Tipo Cobro</label>
+                <select id="cDom">
+                    <option value="no">Lunes a Sábado</option>
+                    <option value="si">Incluye Domingo</option>
+                </select>
+            </div>
         </div>
-        <button onclick="crear()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black;">GUARDAR</button>
+        <label>Fecha Primera Cuota</label><input type="date" id="cFechaIni">
+        <button onclick="crear()" style="width:100%; background:var(--verde); padding:18px; border-radius:15px; border:none; font-weight:bold; color:black; margin-top:15px;">GUARDAR CRÉDITO</button>
         <button onclick="document.getElementById('mAdd').style.display='none'" style="width:100%; background:none; color:var(--rojo); border:none; margin-top:10px;">CANCELAR</button>
     </div></div>
 
     <div class="tab-bar">
         <button class="btn-tab" onclick="nuevaRuta()">+ RUTA</button>
         <button class="btn-tab" onclick="exportar()" style="background:var(--azul);">COPIA</button>
-        <button class="btn-tab" onclick="document.getElementById('fImport').click()" style="background:#5856d6;">RESTAURAR</button>
+        <button class="btn-tab" onclick="document.getElementById('fImport').click()" style="background:#5856d6;">IMPORTAR</button>
+        <button class="btn-tab" onclick="location.reload()">🔄</button>
         <input type="file" id="fImport" style="display:none" onchange="importar(event)">
     </div>
 
@@ -102,51 +114,84 @@
         const f = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
         function s() { localStorage.setItem('arcaprime_db', JSON.stringify(db)); }
 
-        function setFiltro(t) { filtroActual = t; re(); }
-        function nuevaRuta() { let n = prompt("Nombre de la ruta:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
+        function setFiltro(t, btn) { 
+            filtroActual = t; 
+            document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            re(); 
+        }
+        
+        function nuevaRuta() { let n = prompt("Nombre Ruta:"); if(n){ db.r.push({ n, c: [] }); s(); re(); } }
         function sR(i) { rI = i; document.getElementById('v-clientes').style.display='block'; re(); }
 
         function crear() {
-            let m = parseFloat(document.getElementById('cM').value) || 0;
-            let p = parseFloat(document.getElementById('cI').value) || 0;
+            let m = parseFloat(document.getElementById('cCap').value) || 0;
+            let p = parseFloat(document.getElementById('cInt').value) || 0;
             db.r[rI].c.push({
-                id: Date.now(), n: document.getElementById('cN').value, cedula: document.getElementById('cCedula').value,
-                tel: document.getElementById('cTel').value, d: document.getElementById('cD').value, f: document.getElementById('cF').value,
-                m, t: m + (m*(p/100)), nC: parseInt(document.getElementById('cT').value), p: [], 
-                fCreacion: new Date().toLocaleDateString(), fInicio: document.getElementById('cFechaInicio').value
+                id: Date.now(), n: document.getElementById('cN').value, cedula: document.getElementById('cC').value,
+                tel: document.getElementById('cT').value, d: document.getElementById('cD').value, f: document.getElementById('cF').value,
+                m, t: m + (m*(p/100)), nC: parseInt(document.getElementById('cCuo').value), p: [], 
+                dom: document.getElementById('cDom').value,
+                fReg: new Date().toLocaleDateString(), fIni: document.getElementById('cFechaIni').value
             });
             s(); document.getElementById('mAdd').style.display='none'; re();
         }
 
+        // CÁLCULO DE ATRASOS REAL
+        function calcAtraso(c) {
+            if(!c.fIni) return 0;
+            let inicio = new Date(c.fIni);
+            let hoy = new Date();
+            let diasTranscurridos = 0;
+            let temp = new Date(inicio);
+            
+            while(temp <= hoy) {
+                if(c.dom === 'si' || temp.getDay() !== 0) diasTranscurridos++;
+                temp.setDate(temp.getDate() + 1);
+            }
+            let diff = diasTranscurridos - c.p.length;
+            return diff > 0 ? diff : 0;
+        }
+
         function clickCuota(cId, num) {
             const c = db.r[rI].c.find(x => x.id === cId);
-            const index = c.p.findIndex(p => p.num === num);
-            if (index > -1) {
-                if(confirm("¿Quitar pago cuota " + num + "?")) { c.p.splice(index, 1); s(); re(); }
+            const idx = c.p.findIndex(p => p.num === num);
+            if (idx > -1) {
+                if(confirm("¿Quitar pago cuota "+num+"?")){ c.p.splice(idx,1); s(); re(); }
             } else {
-                c.p.push({num, fecha: new Date().toLocaleDateString()}); s(); re();
+                c.p.push({num, f: new Date().toLocaleDateString()}); s(); re();
             }
         }
 
         function verRecibo(cId) {
             const c = db.r[rI].c.find(x => x.id === cId);
             const vC = c.t/c.nC;
+            const atraso = calcAtraso(c);
             const res = `
-                <h2 style="color:var(--azul); margin-top:0">${c.n}</h2>
-                <p style="font-size:14px; color:var(--gris)">CC: ${c.cedula} | Tel: ${c.tel}</p>
-                <hr style="border:0; border-top:1px solid #333">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0">
-                    <div><small>PRESTADO</small><br><b>${f(c.m)}</b></div>
-                    <div><small>TOTAL</small><br><b>${f(c.t)}</b></div>
-                    <div><small>CUOTA</small><br><b>${f(vC)}</b></div>
-                    <div><small>PAGAS</small><br><b>${c.p.length}/${c.nC}</b></div>
+                <div style="text-align:center; border-bottom:1px dashed #444; padding-bottom:15px; margin-bottom:15px">
+                    <h2 style="margin:0; color:var(--azul)">ARCAPRIME</h2>
+                    <small>Soporte de Pago Digital</small>
                 </div>
-                <p style="font-size:22px; color:var(--verde); text-align:center"><b>SALDO: ${f(c.t - (c.p.length*vC))}</b></p>
-                
-                <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">WHATSAPP</button>
-                <button onclick="renovar(${cId})" style="width:100%; background:var(--azul); color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">RENOVAR CRÉDITO</button>
-                <button onclick="eliminarCli(${cId})" style="width:100%; background:var(--rojo); color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">ELIMINAR CLIENTE</button>
-                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none;">CERRAR</button>
+                <p><b>Cliente:</b> ${c.n}<br><b>CC:</b> ${c.cedula}<br><b>Tel:</b> ${c.tel}</p>
+                <p><b>Fiador:</b> ${c.f || 'No registra'}</p>
+                <hr style="border:0; border-top:1px solid #333">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px">
+                    <div>Registrado: <br><b>${c.fReg}</b></div>
+                    <div>Primer Cobro: <br><b>${c.fIni}</b></div>
+                    <div>Capital: <br><b>${f(c.m)}</b></div>
+                    <div>Total Deuda: <br><b>${f(c.t)}</b></div>
+                </div>
+                <div style="background:#2c2c2e; padding:15px; border-radius:15px; margin:15px 0; text-align:center">
+                    <span style="color:var(--gris); font-size:12px">SALDO ACTUAL</span><br>
+                    <b style="font-size:24px; color:var(--verde)">${f(c.t - (c.p.length*vC))}</b><br>
+                    <small style="color:var(--rojo)">Atraso: ${atraso} días (${f(atraso*vC)})</small>
+                </div>
+                <button onclick="enviarWha(${cId})" style="width:100%; background:#25d366; color:white; padding:15px; border-radius:12px; border:none; font-weight:bold; margin-bottom:10px">ENVIAR WHATSAPP</button>
+                <div class="grid-2">
+                    <button onclick="renovar(${cId})" style="background:var(--azul); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold">RENOVAR</button>
+                    <button onclick="eliminar(${cId})" style="background:var(--rojo); color:white; padding:12px; border-radius:10px; border:none; font-weight:bold">ELIMINAR</button>
+                </div>
+                <button onclick="document.getElementById('mRecibo').style.display='none'" style="width:100%; background:none; color:var(--gris); border:none; margin-top:15px">VOLVER</button>
             `;
             document.getElementById('recibo-body').innerHTML = res;
             document.getElementById('mRecibo').style.display = 'block';
@@ -154,28 +199,21 @@
 
         function renovar(cId) {
             const c = db.r[rI].c.find(x => x.id === cId);
-            if(confirm("¿Deseas renovar a " + c.n + "? Se guardarán sus datos pero el crédito iniciará de cero.")){
-                document.getElementById('cN').value = c.n;
-                document.getElementById('cCedula').value = c.cedula;
-                document.getElementById('cTel').value = c.tel;
-                document.getElementById('cD').value = c.d;
-                document.getElementById('cF').value = c.f;
-                document.getElementById('mRecibo').style.display='none';
+            if(confirm("¿Renovar a "+c.n+"? Se usarán sus datos para un crédito nuevo.")){
+                document.getElementById('cN').value = c.n; document.getElementById('cC').value = c.cedula;
+                document.getElementById('cT').value = c.tel; document.getElementById('cD').value = c.d;
+                document.getElementById('cF').value = c.f; document.getElementById('mRecibo').style.display='none';
                 document.getElementById('mAdd').style.display='block';
             }
         }
 
-        function eliminarCli(cId) {
-            if(confirm("¿ESTÁS SEGURO? Esta acción no se puede deshacer.")){
-                db.r[rI].c = db.r[rI].c.filter(x => x.id !== cId);
-                s(); re(); document.getElementById('mRecibo').style.display='none';
-            }
-        }
+        function eliminar(cId) { if(confirm("¿Eliminar cliente permanentemente?")){ db.r[rI].c = db.r[rI].c.filter(x=>x.id!==cId); s(); re(); document.getElementById('mRecibo').style.display='none'; } }
 
         function enviarWha(cId) {
             const c = db.r[rI].c.find(x => x.id === cId);
-            const saldo = f(c.t - (c.p.length*(c.t/c.nC)));
-            const msg = `*ARCAPRIME PRO*%0A*ESTADO DE CUENTA*%0ACliente: ${c.n}%0ASaldo: ${saldo}%0ACuotas: ${c.p.length}/${c.nC}`;
+            const vC = c.t/c.nC;
+            const atr = calcAtraso(c);
+            const msg = `*ARCAPRIME PRO*%0A*RECIBO DE ESTADO*%0ACliente: ${c.n}%0ASaldo: ${f(c.t - (c.p.length*vC))}%0AAtraso: ${atr} días%0ACuotas: ${c.p.length}/${c.nC}`;
             window.open(`https://wa.me/57${c.tel}?text=${msg}`);
         }
 
@@ -191,23 +229,25 @@
             const lc = document.getElementById('lista-c'); lc.innerHTML = '';
             if(rI !== null) {
                 let cls = db.r[rI].c;
-                if(filtroActual === 'pendientes') cls = cls.filter(c => !c.p.some(p => p.fecha === hoy));
+                if(filtroActual === 'pendientes') cls = cls.filter(c => !c.p.some(p => p.f === hoy));
                 document.getElementById('t-clientes-count').innerText = cls.length;
                 cls.forEach(c => {
                     let vC = c.t/c.nC;
-                    let pagHoy = c.p.some(p => p.fecha === hoy);
+                    let pagHoy = c.p.some(p => p.f === hoy);
+                    let atr = calcAtraso(c);
                     if(!pagHoy) td += vC;
                     let cart = '';
                     for(let x=1; x<=c.nC; x++) { cart += `<button class="cuota ${c.p.some(p=>p.num===x)?'paga':''}" onclick="clickCuota(${c.id}, ${x})">${x}</button>`; }
                     lc.innerHTML += `
                         <div class="cliente-card">
-                            <span style="font-size:10px; color:var(--gris)">Desde: ${c.fInicio}</span><br>
-                            <b>${c.n}</b>
+                            ${atr > 0 ? `<div class="atraso-badge">ATRASO: ${atr} DÍAS</div>` : ''}
+                            <span style="font-size:10px; color:var(--gris)">Desde: ${c.fIni} | Hecho: ${c.fReg}</span><br>
+                            <b style="font-size:18px">${c.n}</b>
                             <div class="carton">${cart}</div>
                             <div class="acciones-cliente">
-                                <button class="btn-accion" style="background:#333; color:white;" onclick="verRecibo(${c.id})">👁️ RECIBO</button>
+                                <button class="btn-accion" style="background:#333; color:white;" onclick="verRecibo(${c.id})">👁️ DETALLES</button>
                                 <button class="btn-accion" style="background:${pagHoy?'#153d1d':'#3d1515'}; color:${pagHoy?'var(--verde)':'var(--rojo)'}">
-                                    ${pagHoy?'✓ PAGÓ':'⚠️ PEND.'}
+                                    ${pagHoy?'✓ PAGÓ':'⚠️ PENDIENTE'}
                                 </button>
                             </div>
                         </div>`;
@@ -218,24 +258,20 @@
         }
 
         function exportar() {
-            const data = JSON.stringify(db);
-            const blob = new Blob([data], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type: 'application/json'}));
             a.download = `ARCAPRIME_${new Date().toLocaleDateString()}.json`; a.click();
         }
 
         function importar(e) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    db = JSON.parse(e.target.result);
-                    s(); re(); alert("Datos restaurados con éxito");
-                } catch(err) { alert("Archivo no válido"); }
+            reader.onload = (e) => { 
+                try { db = JSON.parse(e.target.result); s(); re(); alert("Éxito"); } catch(err) { alert("Error"); }
             };
             reader.readAsText(e.target.files[0]);
         }
 
-        window.onload = () => { document.getElementById('cFechaInicio').value = new Date().toISOString().split('T')[0]; re(); };
+        window.onload = () => { document.getElementById('cFechaIni').value = new Date().toISOString().split('T')[0]; re(); };
     </script>
 </body>
 </html>
