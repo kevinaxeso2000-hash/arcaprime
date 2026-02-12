@@ -3,42 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0a0a">
-    <meta name="mobile-web-app-capable" content="yes">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0a">
+    
     <title>Arcaprime</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
-        .card { background: #1c1c1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; margin: 0; }
+        .card { background: #1c1c1e; padding: 30px; border-radius: 25px; border: 1px solid #333; }
         .btn-instalar { background: #0a84ff; color: white; padding: 20px; border-radius: 15px; border: none; font-weight: bold; width: 100%; display: none; font-size: 18px; margin-top: 20px; }
+        .instrucciones { text-align: left; color: #8e8e93; font-size: 14px; margin-top: 30px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>ARCAPRIME</h1>
-        <p id="status">Cargando sistema...</p>
+        <p id="status">Verificando estado...</p>
         <button id="btnInstalar" class="btn-instalar">INSTALAR APP AHORA</button>
     </div>
 
-    <script>
-        // Registro corregido para GitHub Pages
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/arcaprime/sw.js')
-            .then(() => console.log("SW registrado"))
-            .catch(err => console.log("Error SW:", err));
-        }
+    <div class="instrucciones">
+        <p><b>Solución rápida:</b></p>
+        <p>1. Cierra todas las pestañas de Chrome.</p>
+        <p>2. Abre el link en modo <b>Incógnito</b>.</p>
+        <p>3. Toca los 3 puntos y luego <b>"Instalar aplicación"</b>.</p>
+    </div>
 
-        let evento;
+    <script>
+        // Este script intenta forzar el prompt de instalación
+        let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            evento = e;
+            deferredPrompt = e;
             document.getElementById('btnInstalar').style.display = 'block';
-            document.getElementById('status').innerText = "¡App Lista para instalar!";
+            document.getElementById('status').innerText = "¡App lista para instalar!";
         });
 
-        document.getElementById('btnInstalar').addEventListener('click', () => {
-            if (evento) evento.prompt();
+        document.getElementById('btnInstalar').addEventListener('click', (e) => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                });
+            }
         });
     </script>
 </body>
