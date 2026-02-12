@@ -1,7 +1,10 @@
-const CACHE_NAME = 'arcaprime-v1';
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['index.html'])));
-});
-self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
-});
+{
+  "name": "Arcaprime Cali",
+  "short_name": "Arcaprime",
+  "start_url": "/arcaprime/index.html",
+  "scope": "/arcaprime/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait"
+}
